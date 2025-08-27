@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólio Moderno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-gray': '#f5f5f5',
+                        'custom-purple': '#8e44ad',
+                        'custom-blue': '#02C2E9'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-border {
+            background: linear-gradient(135deg, #8e44ad, #02C2E9);
+            padding: 2px;
+            border-radius: 12px;
+        }
+        
+        .gradient-border-content {
+            background: white;
+            border-radius: 10px;
+            height: 100%;
+        }
+        
+        .slide-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slide {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 50%;
+            background: linear-gradient(135deg, #8e44ad, #02C2E9);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-custom-gray min-h-screen">
+    <!-- Menu Fixo -->
+    <nav class="fixed top-0 left-0 right-0 bg-white shadow-lg z-50">
+        <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">
+                        Meu Portfólio
+                    </h1>
+                </div>
+                <div class="hidden xl:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="nav-link active text-gray-700 hover:text-custom-blue px-3 py-2 text-sm font-medium" onclick="showSection('home')">Home</a>
+                        <a href="#" class="nav-link text-gray-700 hover:text-custom-blue px-3 py-2 text-sm font-medium" onclick="showSection('projects')">Projetos</a>
+                        <a href="#" class="nav-link text-gray-700 hover:text-custom-blue px-3 py-2 text-sm font-medium" onclick="showSection('about')">Sobre</a>
+                        <a href="#" class="nav-link text-gray-700 hover:text-custom-blue px-3 py-2 text-sm font-medium" onclick="showSection('contact')">Contato</a>
+                    </div>
+                </div>
+                <div class="xl:hidden flex items-center space-x-3">
+                    <button onclick="openProjectModal()" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-3 py-2 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-xs">
+                        + Projeto
+                    </button>
+                    <button onclick="toggleMobileMenu()" class="text-gray-700 hover:text-custom-blue">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu Mobile -->
+        <div id="mobile-menu" class="xl:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-custom-blue" onclick="showSection('home'); toggleMobileMenu()">Home</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-custom-blue" onclick="showSection('projects'); toggleMobileMenu()">Projetos</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-custom-blue" onclick="showSection('about'); toggleMobileMenu()">Sobre</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-custom-blue" onclick="showSection('contact'); toggleMobileMenu()">Contato</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="pt-20 pb-8">
+        <!-- Seção Home -->
+        <section id="home" class="section-content">
+            <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
+
+
+                <!-- Controles de Layout -->
+                <div class="mb-6 flex justify-end">
+                    <div class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                        <button id="grid-view-btn" onclick="changeLayout('grid')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                            Grade
+                        </button>
+                        <button id="list-view-btn" onclick="changeLayout('list')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                            Lista
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Layout Responsivo: Formulário e Projetos -->
+                <div class="flex flex-col xl:flex-row gap-6">
+                    <!-- Formulário de Cadastro (Esquerda em telas grandes) -->
+                    <div class="w-full xl:w-80 xl:flex-shrink-0 xl:sticky xl:top-24 xl:h-fit">
+
+                        
+                        <!-- Formulário para telas grandes (1280px+) -->
+                        <div class="hidden xl:block gradient-border">
+                            <div class="gradient-border-content p-5">
+                                <h3 class="text-lg font-bold text-gray-800 mb-5 text-center">Adicionar Novo Projeto</h3>
+                                <form id="project-form" class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Título do Projeto</label>
+                                        <input type="text" id="project-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Descrição Curta</label>
+                                        <textarea id="project-description" required rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm"></textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Link do Projeto</label>
+                                        <input type="url" id="project-link" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Imagens (múltiplas)</label>
+                                        <input type="file" id="project-images" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                        <p class="text-xs text-gray-500 mt-1">Múltiplas imagens para galeria</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Vídeo (YouTube/Vimeo)</label>
+                                        <input type="text" id="project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm mb-2">
+                                        <input type="file" id="project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm">
+                                        Adicionar Projeto
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid de Projetos (Direita em telas grandes) -->
+                    <div class="flex-1 min-w-0">
+                        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                            <!-- Projetos serão inseridos aqui dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Projetos -->
+        <section id="projects" class="section-content hidden">
+            <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Título e Controles de Layout para Projetos -->
+                <div class="mb-8 flex justify-between items-center">
+                    <h2 class="text-4xl font-bold text-gray-800">
+                        Meus <span class="bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">Projetos</span>
+                    </h2>
+                    <div class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                        <button id="projects-grid-view-btn" onclick="changeProjectsLayout('grid')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                            Grade
+                        </button>
+                        <button id="projects-list-view-btn" onclick="changeProjectsLayout('list')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                            Lista
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="projects-only-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Projetos serão inseridos aqui dinamicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Sobre -->
+        <section id="about" class="section-content hidden">
+            <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl font-bold text-gray-800 mb-8">
+                    Sobre <span class="bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">Mim</span>
+                </h2>
+                <div class="gradient-border">
+                    <div class="gradient-border-content p-8">
+                        <p class="text-lg text-gray-600 mb-6">
+                            Sou um desenvolvedor apaixonado por criar soluções inovadoras e experiências digitais únicas. 
+                            Com experiência em diversas tecnologias, busco sempre entregar projetos de alta qualidade.
+                        </p>
+                        <p class="text-lg text-gray-600">
+                            Minha missão é transformar ideias em realidade através do código, criando aplicações que fazem a diferença na vida das pessoas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Contato -->
+        <section id="contact" class="section-content hidden">
+            <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-bold text-center text-gray-800 mb-12">
+                    Entre em <span class="bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">Contato</span>
+                </h2>
+                <div class="max-w-2xl mx-auto">
+                    <div class="gradient-border">
+                        <div class="gradient-border-content p-8">
+                            <form class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                                <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mensagem</label>
+                                <textarea rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                                Enviar Mensagem
+                            </button>
+                        </form>
+                        <div class="mt-8 text-center">
+                            <p class="text-gray-600 mb-4">Ou me encontre nas redes sociais:</p>
+                            <div class="flex justify-center space-x-6">
+                                <a href="#" class="text-custom-purple hover:text-custom-blue transition-colors">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-custom-purple hover:text-custom-blue transition-colors">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-custom-purple hover:text-custom-blue transition-colors">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001 12.017.001z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Visualização -->
+    <div id="project-modal" class="modal">
+        <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto m-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-title" class="text-2xl font-bold text-gray-800"></h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="modal-content" class="space-y-6">
+                    <!-- Conteúdo do modal será inserido aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Formulário de Projeto -->
+    <div id="project-form-modal" class="modal">
+        <div class="bg-white rounded-lg max-w-md max-h-[90vh] overflow-y-auto m-4 w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Adicionar Novo Projeto</h3>
+                    <button onclick="closeProjectModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="project-form-modal-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Título do Projeto</label>
+                        <input type="text" id="modal-project-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição Curta</label>
+                        <textarea id="modal-project-description" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Link do Projeto</label>
+                        <input type="url" id="modal-project-link" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Imagens (múltiplas)</label>
+                        <input type="file" id="modal-project-images" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">Múltiplas imagens para galeria</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Vídeo (YouTube/Vimeo)</label>
+                        <input type="text" id="modal-project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent mb-2">
+                        <input type="file" id="modal-project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                        Adicionar Projeto
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let projects = [];
+        let currentSlides = {};
+        let currentLayout = 'grid'; // 'grid' ou 'list'
+        let projectsLayout = 'grid'; // Layout separado para a página de projetos
+
+        // Navegação
+        function showSection(sectionName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Mostrar seção selecionada
+            document.getElementById(sectionName).classList.remove('hidden');
+            
+            // Atualizar navegação ativa
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Se for a seção de projetos, renderizar apenas os projetos
+            if (sectionName === 'projects') {
+                renderProjects('projects-only-grid');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Função para alterar layout da página principal
+        function changeLayout(layout) {
+            currentLayout = layout;
+            
+            // Atualizar botões
+            const gridBtn = document.getElementById('grid-view-btn');
+            const listBtn = document.getElementById('list-view-btn');
+            
+            if (layout === 'grid') {
+                gridBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white';
+                listBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800';
+            } else {
+                listBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white';
+                gridBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800';
+            }
+            
+            // Re-renderizar projetos com novo layout
+            renderProjects('projects-grid');
+        }
+
+        // Função para alterar layout da página de projetos
+        function changeProjectsLayout(layout) {
+            projectsLayout = layout;
+            
+            // Atualizar botões da página de projetos
+            const gridBtn = document.getElementById('projects-grid-view-btn');
+            const listBtn = document.getElementById('projects-list-view-btn');
+            
+            if (layout === 'grid') {
+                gridBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white';
+                listBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800';
+            } else {
+                listBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white';
+                gridBtn.className = 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800';
+            }
+            
+            // Re-renderizar projetos da página de projetos
+            renderProjects('projects-only-grid');
+        }
+
+        // Função para abrir modal do formulário
+        function openProjectModal() {
+            document.getElementById('project-form-modal').classList.add('active');
+        }
+
+        function closeProjectModal() {
+            document.getElementById('project-form-modal').classList.remove('active');
+            document.getElementById('project-form-modal-form').reset();
+        }
+
+        // Formulário de cadastro (sidebar)
+        document.getElementById('project-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleProjectSubmission('project-form');
+        });
+
+        // Formulário de cadastro (modal)
+        document.getElementById('project-form-modal-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleProjectSubmission('project-form-modal-form');
+        });
+
+        function handleProjectSubmission(formId) {
+            const isModal = formId === 'project-form-modal-form';
+            const prefix = isModal ? 'modal-' : '';
+            
+            const title = document.getElementById(prefix + 'project-title').value;
+            const description = document.getElementById(prefix + 'project-description').value;
+            const link = document.getElementById(prefix + 'project-link').value;
+            const images = document.getElementById(prefix + 'project-images').files;
+            const videoLink = document.getElementById(prefix + 'project-video').value;
+            const videoFile = document.getElementById(prefix + 'project-video-file').files[0];
+            
+            const project = {
+                id: Date.now(),
+                title,
+                description,
+                link,
+                images: [],
+                video: videoLink || null,
+                videoFile: null
+            };
+            
+            // Processar imagens
+            if (images.length > 0) {
+                Array.from(images).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        project.images.push(e.target.result);
+                        if (project.images.length === images.length) {
+                            finalizeProject(project, isModal);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                // Usar imagem padrão se nenhuma for fornecida
+                project.images.push('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzUgMTIwSDIyNVYxODBIMTc1VjEyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTE1MCAyMTBIMjUwVjI0MEgxNTBWMjEwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K');
+                finalizeProject(project, isModal);
+            }
+            
+            // Processar vídeo se houver arquivo
+            if (videoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    project.videoFile = e.target.result;
+                };
+                reader.readAsDataURL(videoFile);
+            }
+        }
+
+        function finalizeProject(project, isModal = false) {
+            projects.push(project);
+            renderProjects('projects-grid');
+            
+            if (isModal) {
+                // Fechar modal e limpar formulário
+                closeProjectModal();
+            } else {
+                // Limpar formulário da sidebar
+                document.getElementById('project-form').reset();
+            }
+            
+            // Mostrar mensagem de sucesso
+            alert('Projeto adicionado com sucesso!');
+        }
+
+        function renderProjects(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            // Atualizar classes do container baseado no layout
+            if (containerId === 'projects-grid') {
+                if (currentLayout === 'grid') {
+                    container.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
+                } else {
+                    container.className = 'space-y-4';
+                }
+            } else if (containerId === 'projects-only-grid') {
+                if (projectsLayout === 'grid') {
+                    container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8';
+                } else {
+                    container.className = 'space-y-6';
+                }
+            }
+            
+            projects.forEach(project => {
+                const projectCard = createProjectCard(project, containerId);
+                container.appendChild(projectCard);
+            });
+        }
+
+        function createProjectCard(project, containerId = 'projects-grid') {
+            const card = document.createElement('div');
+            const isListView = (currentLayout === 'list' && containerId === 'projects-grid') || 
+                              (projectsLayout === 'list' && containerId === 'projects-only-grid');
+            
+            if (isListView) {
+                // Layout de Lista
+                card.className = 'gradient-border transform hover:scale-[1.02] transition-all duration-300 hover:shadow-xl';
+                
+                card.innerHTML = `
+                    <div class="gradient-border-content p-4">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <!-- Imagem -->
+                            <div class="slide-container w-full md:w-48 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                ${project.images.map((img, index) => `
+                                    <div class="slide ${index === 0 ? 'active' : ''} h-full">
+                                        <img src="${img}" alt="${project.title}" class="w-full h-full object-cover">
+                                    </div>
+                                `).join('')}
+                                ${project.images.length > 1 ? `
+                                    <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                                        ${project.images.map((_, index) => `
+                                            <button onclick="changeSlide(${project.id}, ${index})" class="w-1.5 h-1.5 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"></button>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Conteúdo -->
+                            <div class="flex-1 flex flex-col justify-between min-h-[8rem]">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800 mb-2">${project.title}</h3>
+                                    <p class="text-gray-600 text-sm leading-relaxed line-clamp-2">${project.description}</p>
+                                </div>
+                                
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-3">
+                                    ${project.link ? `
+                                        <a href="${project.link}" target="_blank" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
+                                            Ver Projeto →
+                                        </a>
+                                    ` : '<span></span>'}
+                                    
+                                    <div class="flex space-x-2">
+                                        <button onclick="openModal(${project.id})" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 font-medium text-sm">
+                                            Ver Detalhes
+                                        </button>
+                                        <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300" title="Excluir projeto">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Layout de Grade (padrão)
+                card.className = 'gradient-border transform hover:scale-105 transition-all duration-300 hover:shadow-xl';
+                
+                card.innerHTML = `
+                    <div class="gradient-border-content p-6 h-full flex flex-col">
+                        <div class="slide-container mb-4 h-48 bg-gray-100 rounded-lg overflow-hidden">
+                            ${project.images.map((img, index) => `
+                                <div class="slide ${index === 0 ? 'active' : ''} h-full">
+                                    <img src="${img}" alt="${project.title}" class="w-full h-full object-cover">
+                                </div>
+                            `).join('')}
+                            ${project.images.length > 1 ? `
+                                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                    ${project.images.map((_, index) => `
+                                        <button onclick="changeSlide(${project.id}, ${index})" class="w-2 h-2 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"></button>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${project.title}</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">${project.description}</p>
+                        
+                        <div class="flex justify-between items-center">
+                            ${project.link ? `
+                                <a href="${project.link}" target="_blank" class="text-custom-purple hover:text-custom-blue font-semibold">
+                                    Ver Projeto →
+                                </a>
+                            ` : '<span></span>'}
+                            
+                            <div class="flex space-x-2">
+                                <button onclick="openModal(${project.id})" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300">
+                                    Ver Detalhes
+                                </button>
+                                <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300" title="Excluir projeto">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Inicializar slide atual
+            currentSlides[project.id] = 0;
+            
+            // Auto-play para slides
+            if (project.images.length > 1) {
+                setInterval(() => {
+                    const nextSlide = (currentSlides[project.id] + 1) % project.images.length;
+                    changeSlide(project.id, nextSlide);
+                }, 5000);
+            }
+            
+            return card;
+        }
+
+        function changeSlide(projectId, slideIndex) {
+            currentSlides[projectId] = slideIndex;
+            
+            const projectCard = document.querySelector(`[data-project-id="${projectId}"]`) || 
+                               Array.from(document.querySelectorAll('.slide-container')).find(container => {
+                                   return container.querySelector('.slide img')?.alt === projects.find(p => p.id === projectId)?.title;
+                               });
+            
+            if (projectCard) {
+                const slides = projectCard.querySelectorAll('.slide');
+                slides.forEach((slide, index) => {
+                    slide.classList.toggle('active', index === slideIndex);
+                });
+                
+                const dots = projectCard.querySelectorAll('button');
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('opacity-100', index === slideIndex);
+                    dot.classList.toggle('opacity-50', index !== slideIndex);
+                });
+            }
+        }
+
+        function openModal(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const modal = document.getElementById('project-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            
+            modalTitle.textContent = project.title;
+            
+            modalContent.innerHTML = `
+                <div class="space-y-6">
+                    <p class="text-gray-600 text-lg">${project.description}</p>
+                    
+                    ${project.images.length > 0 ? `
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-semibold text-gray-800">Galeria de Imagens</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${project.images.map(img => `
+                                    <img src="${img}" alt="${project.title}" class="w-full h-64 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity" onclick="viewFullImage('${img}')">
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${project.video || project.videoFile ? `
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-semibold text-gray-800">Vídeo de Apresentação</h4>
+                            ${project.video ? `
+                                <div class="aspect-video">
+                                    ${project.video.includes('youtube.com') || project.video.includes('youtu.be') ? `
+                                        <iframe src="${getYouTubeEmbedUrl(project.video)}" class="w-full h-full rounded-lg" frameborder="0" allowfullscreen></iframe>
+                                    ` : project.video.includes('vimeo.com') ? `
+                                        <iframe src="${getVimeoEmbedUrl(project.video)}" class="w-full h-full rounded-lg" frameborder="0" allowfullscreen></iframe>
+                                    ` : `
+                                        <video controls class="w-full h-full rounded-lg">
+                                            <source src="${project.video}" type="video/mp4">
+                                            Seu navegador não suporta o elemento de vídeo.
+                                        </video>
+                                    `}
+                                </div>
+                            ` : project.videoFile ? `
+                                <div class="aspect-video">
+                                    <video controls class="w-full h-full rounded-lg">
+                                        <source src="${project.videoFile}" type="video/mp4">
+                                        Seu navegador não suporta o elemento de vídeo.
+                                    </video>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    ${project.link ? `
+                        <div class="text-center">
+                            <a href="${project.link}" target="_blank" class="inline-block bg-gradient-to-r from-custom-purple to-custom-blue text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                                Acessar Projeto Completo
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('project-modal').classList.remove('active');
+        }
+
+        function viewFullImage(imageSrc) {
+            const fullImageModal = document.createElement('div');
+            fullImageModal.className = 'modal active';
+            fullImageModal.innerHTML = `
+                <div class="max-w-full max-h-full p-4">
+                    <img src="${imageSrc}" alt="Imagem ampliada" class="max-w-full max-h-full object-contain rounded-lg">
+                    <button onclick="this.parentElement.parentElement.remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(fullImageModal);
+        }
+
+        function getYouTubeEmbedUrl(url) {
+            const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+            return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : url;
+        }
+
+        function getVimeoEmbedUrl(url) {
+            const videoId = url.match(/vimeo\.com\/(\d+)/);
+            return videoId ? `https://player.vimeo.com/video/${videoId[1]}` : url;
+        }
+
+        function deleteProject(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            if (confirm(`Tem certeza que deseja excluir o projeto "${project.title}"?`)) {
+                // Remover projeto do array
+                projects = projects.filter(p => p.id !== projectId);
+                
+                // Atualizar ambos os grids
+                renderProjects('projects-grid');
+                renderProjects('projects-only-grid');
+                
+                // Mostrar mensagem de sucesso
+                alert('Projeto excluído com sucesso!');
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('project-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Fechar modal do formulário ao clicar fora
+        document.getElementById('project-form-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProjectModal();
+            }
+        });
+
+        // Adicionar alguns projetos de exemplo
+        window.addEventListener('load', function() {
+            // Projeto de exemplo 1
+            projects.push({
+                id: 1,
+                title: "Sistema de E-commerce",
+                description: "Plataforma completa de vendas online com painel administrativo, carrinho de compras e integração com pagamentos.",
+                link: "https://exemplo-ecommerce.com",
+                images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjOGU0NGFkIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5FLWNvbW1lcmNlPC90ZXh0Pgo8L3N2Zz4K'],
+                video: null,
+                videoFile: null
+            });
+
+            // Projeto de exemplo 2
+            projects.push({
+                id: 2,
+                title: "App Mobile de Delivery",
+                description: "Aplicativo móvel para delivery de comida com rastreamento em tempo real e sistema de avaliações.",
+                link: "https://exemplo-delivery.com",
+                images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZTkxZTYzIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5EZWxpdmVyeSBBcHA8L3RleHQ+Cjwvc3ZnPgo='],
+                video: null,
+                videoFile: null
+            });
+
+            renderProjects('projects-grid');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9758c49794f0ef86',t:'MTc1NjI2ODMzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
