@@ -95,9 +95,14 @@
     <nav class="fixed top-0 left-0 right-0 bg-white shadow-lg z-50">
         <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex-shrink-0">
+                <div class="flex-shrink-0 flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-custom-purple to-custom-blue rounded-full flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                    </div>
                     <h1 class="text-2xl font-bold bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">
-                        Meu Portfólio
+                        Meu Portfólio JXCoder
                     </h1>
                 </div>
                 <div class="hidden xl:block">
@@ -139,21 +144,50 @@
             <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
 
 
-                <!-- Controles de Layout -->
-                <div class="mb-6 flex justify-end">
-                    <div class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-                        <button id="grid-view-btn" onclick="changeLayout('grid')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
-                            Grade
-                        </button>
-                        <button id="list-view-btn" onclick="changeLayout('list')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                            </svg>
-                            Lista
-                        </button>
+                <!-- Título e Controles de Layout para Dashboard -->
+                <div class="mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <h2 class="text-4xl font-bold text-gray-800">
+                        <span class="bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">Dashboard</span>
+                    </h2>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                        <!-- Botões de Exportação -->
+                        <div class="flex bg-white rounded-full shadow-sm border border-gray-200 p-1">
+                            <button onclick="exportToExcel()" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Excel
+                            </button>
+                            <button onclick="exportToJSON()" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                JSON
+                            </button>
+                            <button onclick="openSupabaseConfig()" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                </svg>
+                                Backup
+                            </button>
+                        </div>
+                        
+                        <!-- Controles de Layout -->
+                        <div class="flex bg-white rounded-full shadow-sm border border-gray-200 p-1">
+                            <button id="grid-view-btn" onclick="changeLayout('grid')" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                </svg>
+                                Grade
+                            </button>
+                            <button id="list-view-btn" onclick="changeLayout('list')" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                                Lista
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -170,32 +204,37 @@
                                 <form id="project-form" class="space-y-3">
                                     <div>
                                         <label class="block text-xs font-medium text-gray-700 mb-1">Título do Projeto</label>
-                                        <input type="text" id="project-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                        <input type="text" id="project-title" required class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
                                     </div>
                                     
                                     <div>
                                         <label class="block text-xs font-medium text-gray-700 mb-1">Descrição Curta</label>
-                                        <textarea id="project-description" required rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm"></textarea>
+                                        <textarea id="project-description" required rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm"></textarea>
                                     </div>
                                     
                                     <div>
                                         <label class="block text-xs font-medium text-gray-700 mb-1">Link do Projeto</label>
-                                        <input type="url" id="project-link" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                        <input type="url" id="project-link" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
                                     </div>
                                     
                                     <div>
                                         <label class="block text-xs font-medium text-gray-700 mb-1">Imagens (múltiplas)</label>
-                                        <input type="file" id="project-images" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                        <input type="file" id="project-images" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
                                         <p class="text-xs text-gray-500 mt-1">Múltiplas imagens para galeria</p>
                                     </div>
                                     
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Vídeo (YouTube/Vimeo)</label>
-                                        <input type="text" id="project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm mb-2">
-                                        <input type="file" id="project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Data de Criação</label>
+                                        <input type="date" id="project-date" value="" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
                                     </div>
                                     
-                                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Vídeo (YouTube/Vimeo)</label>
+                                        <input type="text" id="project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm mb-2">
+                                        <input type="file" id="project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2.5 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm">
                                         Adicionar Projeto
                                     </button>
                                 </form>
@@ -221,14 +260,14 @@
                     <h2 class="text-4xl font-bold text-gray-800">
                         Meus <span class="bg-gradient-to-r from-custom-purple to-custom-blue bg-clip-text text-transparent">Projetos</span>
                     </h2>
-                    <div class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-                        <button id="projects-grid-view-btn" onclick="changeProjectsLayout('grid')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
+                    <div class="flex bg-white rounded-full shadow-sm border border-gray-200 p-1">
+                        <button id="projects-grid-view-btn" onclick="changeProjectsLayout('grid')" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-gradient-to-r from-custom-purple to-custom-blue text-white">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                             </svg>
                             Grade
                         </button>
-                        <button id="projects-list-view-btn" onclick="changeProjectsLayout('list')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
+                        <button id="projects-list-view-btn" onclick="changeProjectsLayout('list')" class="flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                             </svg>
@@ -275,17 +314,17 @@
                             <form class="space-y-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
-                                <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                                <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                                <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Mensagem</label>
-                                <textarea rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
+                                <textarea rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
                             </div>
-                            <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                            <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
                                 Enviar Mensagem
                             </button>
                         </form>
@@ -351,35 +390,259 @@
                 <form id="project-form-modal-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Título do Projeto</label>
-                        <input type="text" id="modal-project-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                        <input type="text" id="modal-project-title" required class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Descrição Curta</label>
-                        <textarea id="modal-project-description" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
+                        <textarea id="modal-project-description" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Link do Projeto</label>
-                        <input type="url" id="modal-project-link" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                        <input type="url" id="modal-project-link" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Imagens (múltiplas)</label>
-                        <input type="file" id="modal-project-images" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                        <input type="file" id="modal-project-images" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
                         <p class="text-xs text-gray-500 mt-1">Múltiplas imagens para galeria</p>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Vídeo (YouTube/Vimeo)</label>
-                        <input type="text" id="modal-project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent mb-2">
-                        <input type="file" id="modal-project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Criação</label>
+                        <input type="date" id="modal-project-date" value="" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
                     </div>
                     
-                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Vídeo (YouTube/Vimeo)</label>
+                        <input type="text" id="modal-project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent mb-2">
+                        <input type="file" id="modal-project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
                         Adicionar Projeto
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Configuração do Supabase -->
+    <div id="supabase-config-modal" class="modal">
+        <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto m-4 w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Configurar Backup Online (Supabase)</h3>
+                    <button onclick="closeSupabaseConfig()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Abas -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button id="tab-tutorial" onclick="switchTab('tutorial')" class="px-4 py-2 text-sm font-medium text-custom-blue border-b-2 border-custom-blue">
+                        Tutorial Passo a Passo
+                    </button>
+                    <button id="tab-config" onclick="switchTab('config')" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 ml-4">
+                        Configuração
+                    </button>
+                    <button id="tab-status" onclick="switchTab('status')" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 ml-4">
+                        Status
+                    </button>
+                </div>
+                
+                <!-- Conteúdo da Aba Tutorial -->
+                <div id="content-tutorial" class="tab-content">
+                    <div class="space-y-6">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">O que é o Supabase?</h4>
+                            <p class="text-gray-600">O Supabase é uma plataforma gratuita que permite salvar seus projetos na nuvem de forma segura. Assim você nunca perde seus dados!</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <h4 class="text-xl font-bold text-gray-800">Passo a Passo Completo:</h4>
+                            
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-start mb-3">
+                                        <span class="bg-custom-purple text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                                        <div>
+                                            <h5 class="font-semibold text-gray-800 mb-2">Criar conta no Supabase</h5>
+                                            <ul class="text-gray-600 space-y-1">
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Acesse <a href="https://supabase.com" target="_blank" class="text-custom-blue hover:underline">supabase.com</a></li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Clique em "Start your project"</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Faça login com GitHub, Google ou email</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-start mb-3">
+                                        <span class="bg-custom-purple text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                                        <div>
+                                            <h5 class="font-semibold text-gray-800 mb-2">Criar novo projeto</h5>
+                                            <ul class="text-gray-600 space-y-1">
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Clique em "New Project"</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Escolha um nome (ex: "meu-portfolio")</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Crie uma senha forte para o banco</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Selecione uma região próxima</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Clique em "Create new project"</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-start mb-3">
+                                        <span class="bg-custom-purple text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
+                                        <div>
+                                            <h5 class="font-semibold text-gray-800 mb-2">Obter as credenciais</h5>
+                                            <ul class="text-gray-600 space-y-1">
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Aguarde o projeto ser criado (1-2 minutos)</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Vá em "Settings" → "API"</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Copie a "URL" do projeto</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Copie a "anon public" key</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-start mb-3">
+                                        <span class="bg-custom-purple text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">4</span>
+                                        <div>
+                                            <h5 class="font-semibold text-gray-800 mb-2">Criar tabela no banco</h5>
+                                            <ul class="text-gray-600 space-y-1">
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Vá em "Table Editor"</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Clique em "Create a new table"</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Nome da tabela: <code class="bg-gray-100 px-1 rounded">projects_backup</code></li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Adicione as colunas conforme mostrado na aba "Configuração"</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-start mb-3">
+                                        <span class="bg-custom-purple text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">5</span>
+                                        <div>
+                                            <h5 class="font-semibold text-gray-800 mb-2">Configurar no sistema</h5>
+                                            <ul class="text-gray-600 space-y-1">
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Vá na aba "Configuração" aqui</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Cole a URL e a chave que você copiou</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Clique em "Testar Conexão"</li>
+                                                <li class="flex items-start"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>Se tudo estiver certo, clique em "Salvar"</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">Pronto!</h4>
+                            <p class="text-gray-600">Agora você pode fazer backup dos seus projetos na nuvem com segurança!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conteúdo da Aba Configuração -->
+                <div id="content-config" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">Importante</h4>
+                            <p class="text-gray-600">Antes de configurar, certifique-se de ter seguido todos os passos do tutorial!</p>
+                        </div>
+                        
+                        <form id="supabase-config-form" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    URL do Projeto Supabase
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <input type="url" id="supabase-url" placeholder="https://seu-projeto.supabase.co" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent">
+                                <p class="text-xs text-gray-500 mt-1">Encontre em Settings → API → Project URL</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Chave Pública (anon key)
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <textarea id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-custom-blue focus:border-transparent"></textarea>
+                                <p class="text-xs text-gray-500 mt-1">Encontre em Settings → API → Project API keys → anon public</p>
+                            </div>
+                            
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <h5 class="font-semibold text-gray-800 mb-2">📋 SQL para criar a tabela:</h5>
+                                <div class="bg-gray-800 text-green-400 p-3 rounded text-sm font-mono overflow-x-auto">
+                                    <pre>CREATE TABLE projects_backup (
+  id SERIAL PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  backup_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  projects_count INTEGER NOT NULL,
+  projects_data JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);</pre>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Cole este código no SQL Editor do Supabase</p>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button type="button" onclick="testSupabaseConnection()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                    🔍 Testar Conexão
+                                </button>
+                                <button type="submit" class="flex-1 bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2 px-4 rounded-lg hover:shadow-lg transition-all">
+                                    💾 Salvar Configuração
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div id="config-status" class="hidden">
+                            <!-- Status será mostrado aqui -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conteúdo da Aba Status -->
+                <div id="content-status" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-2">Status da Conexão</h4>
+                                <div id="connection-status" class="text-gray-600">
+                                    <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                                    Não configurado
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-2">Projetos Locais</h4>
+                                <div id="local-projects-count" class="text-2xl font-bold text-custom-purple">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-4">Histórico de Backups</h4>
+                            <div id="backup-history" class="space-y-2">
+                                <p class="text-gray-500 text-center py-4">Nenhum backup realizado ainda</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="performBackup()" id="backup-btn" class="flex-1 bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                Fazer Backup Agora
+                            </button>
+                            <button onclick="loadBackupHistory()" class="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Atualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -486,6 +749,7 @@
             const title = document.getElementById(prefix + 'project-title').value;
             const description = document.getElementById(prefix + 'project-description').value;
             const link = document.getElementById(prefix + 'project-link').value;
+            const date = document.getElementById(prefix + 'project-date').value || new Date().toISOString().split('T')[0];
             const images = document.getElementById(prefix + 'project-images').files;
             const videoLink = document.getElementById(prefix + 'project-video').value;
             const videoFile = document.getElementById(prefix + 'project-video-file').files[0];
@@ -495,6 +759,8 @@
                 title,
                 description,
                 link,
+                date,
+                createdAt: new Date().toISOString(),
                 images: [],
                 video: videoLink || null,
                 videoFile: null
@@ -530,7 +796,12 @@
 
         function finalizeProject(project, isModal = false) {
             projects.push(project);
+            
+            // Salvar no localStorage
+            saveToLocalStorage();
+            
             renderProjects('projects-grid');
+            renderProjects('projects-only-grid');
             
             if (isModal) {
                 // Fechar modal e limpar formulário
@@ -602,24 +873,48 @@
                                 <div>
                                     <h3 class="text-lg font-bold text-gray-800 mb-2">${project.title}</h3>
                                     <p class="text-gray-600 text-sm leading-relaxed line-clamp-2">${project.description}</p>
+                                    ${project.date ? `<p class="text-xs text-gray-500 mt-1">📅 ${formatDate(project.date)}</p>` : ''}
                                 </div>
                                 
-                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-3">
-                                    ${project.link ? `
-                                        <a href="${project.link}" target="_blank" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
-                                            Ver Projeto →
-                                        </a>
-                                    ` : '<span></span>'}
+                                <div class="flex flex-col gap-3 mt-3">
+                                    <!-- Em telas pequenas: layout vertical -->
+                                    <div class="flex flex-col lg:hidden gap-3">
+                                        <div class="flex items-center justify-between">
+                                            <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
+                                                Ver Detalhes →
+                                            </button>
+                                            <div class="flex items-center gap-2">
+                                                ${project.link ? `
+                                                    <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-3 py-1.5 rounded-full hover:shadow-lg transition-all duration-300 font-medium text-xs">
+                                                        Ver Projeto
+                                                    </a>
+                                                ` : ''}
+                                                <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                     
-                                    <div class="flex space-x-2">
-                                        <button onclick="openModal(${project.id})" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 font-medium text-sm">
-                                            Ver Detalhes
+                                    <!-- Em telas grandes: layout horizontal -->
+                                    <div class="hidden lg:flex items-center justify-between">
+                                        <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
+                                            Ver Detalhes →
                                         </button>
-                                        <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300" title="Excluir projeto">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
+                                        <div class="flex items-center gap-2">
+                                            ${project.link ? `
+                                                <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 font-medium text-sm whitespace-nowrap">
+                                                    Ver Projeto
+                                                </a>
+                                            ` : ''}
+                                            <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -648,24 +943,46 @@
                         </div>
                         
                         <h3 class="text-xl font-bold text-gray-800 mb-2">${project.title}</h3>
-                        <p class="text-gray-600 mb-4 flex-grow">${project.description}</p>
+                        <p class="text-gray-600 mb-2 flex-grow">${project.description}</p>
+                        ${project.date ? `<p class="text-xs text-gray-500 mb-4">📅 ${formatDate(project.date)}</p>` : ''}
                         
-                        <div class="flex justify-between items-center">
-                            ${project.link ? `
-                                <a href="${project.link}" target="_blank" class="text-custom-purple hover:text-custom-blue font-semibold">
-                                    Ver Projeto →
-                                </a>
-                            ` : '<span></span>'}
+                        <div class="flex flex-col gap-3">
+                            <!-- Layout para telas pequenas (mobile/tablet) -->
+                            <div class="flex flex-col md:hidden gap-3">
+                                <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-left">
+                                    Ver Detalhes →
+                                </button>
+                                <div class="flex items-center justify-end gap-2">
+                                    ${project.link ? `
+                                        <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 text-sm">
+                                            Ver Projeto
+                                        </a>
+                                    ` : ''}
+                                    <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                             
-                            <div class="flex space-x-2">
-                                <button onclick="openModal(${project.id})" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                                    Ver Detalhes
+                            <!-- Layout para telas médias e grandes (desktop) -->
+                            <div class="hidden md:flex items-center justify-between">
+                                <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold">
+                                    Ver Detalhes →
                                 </button>
-                                <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300" title="Excluir projeto">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    ${project.link ? `
+                                        <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 whitespace-nowrap">
+                                            Ver Projeto
+                                        </a>
+                                    ` : ''}
+                                    <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -762,7 +1079,7 @@
                     
                     ${project.link ? `
                         <div class="text-center">
-                            <a href="${project.link}" target="_blank" class="inline-block bg-gradient-to-r from-custom-purple to-custom-blue text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                            <a href="${project.link}" target="_blank" class="inline-block bg-gradient-to-r from-custom-purple to-custom-blue text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
                                 Acessar Projeto Completo
                             </a>
                         </div>
@@ -811,6 +1128,9 @@
                 // Remover projeto do array
                 projects = projects.filter(p => p.id !== projectId);
                 
+                // Salvar no localStorage
+                saveToLocalStorage();
+                
                 // Atualizar ambos os grids
                 renderProjects('projects-grid');
                 renderProjects('projects-only-grid');
@@ -834,32 +1154,463 @@
             }
         });
 
-        // Adicionar alguns projetos de exemplo
-        window.addEventListener('load', function() {
-            // Projeto de exemplo 1
-            projects.push({
-                id: 1,
-                title: "Sistema de E-commerce",
-                description: "Plataforma completa de vendas online com painel administrativo, carrinho de compras e integração com pagamentos.",
-                link: "https://exemplo-ecommerce.com",
-                images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjOGU0NGFkIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5FLWNvbW1lcmNlPC90ZXh0Pgo8L3N2Zz4K'],
-                video: null,
-                videoFile: null
+        // Função para formatar data
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Configuração do Supabase
+        let supabaseConfig = {
+            url: localStorage.getItem('supabase_url') || '',
+            key: localStorage.getItem('supabase_key') || ''
+        };
+
+        // Funções do Modal de Configuração do Supabase
+        function openSupabaseConfig() {
+            document.getElementById('supabase-config-modal').classList.add('active');
+            loadSupabaseConfig();
+            updateConnectionStatus();
+            updateLocalProjectsCount();
+        }
+
+        function closeSupabaseConfig() {
+            document.getElementById('supabase-config-modal').classList.remove('active');
+        }
+
+        function switchTab(tabName) {
+            // Remover classe ativa de todas as abas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.className = 'px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 ml-4';
+            });
+            
+            // Ativar aba selecionada
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).className = 'px-4 py-2 text-sm font-medium text-custom-blue border-b-2 border-custom-blue ml-4';
+            
+            // Primeira aba não tem margin-left
+            if (tabName === 'tutorial') {
+                document.getElementById(`tab-${tabName}`).className = 'px-4 py-2 text-sm font-medium text-custom-blue border-b-2 border-custom-blue';
+            }
+        }
+
+        function loadSupabaseConfig() {
+            document.getElementById('supabase-url').value = supabaseConfig.url;
+            document.getElementById('supabase-key').value = supabaseConfig.key;
+        }
+
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                statusElement.innerHTML = '<span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>Não configurado';
+                return;
+            }
+            
+            statusElement.innerHTML = '<span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>Configurado';
+        }
+
+        function updateLocalProjectsCount() {
+            document.getElementById('local-projects-count').textContent = projects.length;
+        }
+
+        async function testSupabaseConnection() {
+            const url = document.getElementById('supabase-url').value.trim();
+            const key = document.getElementById('supabase-key').value.trim();
+            
+            if (!url || !key) {
+                showConfigStatus('Preencha todos os campos obrigatórios!', 'error');
+                return;
+            }
+            
+            showConfigStatus('Testando conexão...', 'info');
+            
+            try {
+                const response = await fetch(`${url}/rest/v1/projects_backup?limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showConfigStatus('Conexão testada com sucesso!', 'success');
+                } else if (response.status === 404) {
+                    showConfigStatus('Tabela "projects_backup" não encontrada. Execute o SQL fornecido no Supabase.', 'warning');
+                } else {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Erro no teste de conexão:', error);
+                showConfigStatus('Erro na conexão. Verifique as credenciais e tente novamente.', 'error');
+            }
+        }
+
+        function showConfigStatus(message, type) {
+            const statusElement = document.getElementById('config-status');
+            const colors = {
+                success: 'border border-gray-200 text-gray-800',
+                error: 'border border-gray-200 text-gray-800',
+                warning: 'border border-gray-200 text-gray-800',
+                info: 'border border-gray-200 text-gray-800'
+            };
+            
+            statusElement.className = `rounded-lg p-4 ${colors[type]}`;
+            statusElement.textContent = message;
+            statusElement.classList.remove('hidden');
+            
+            // Auto-hide após 5 segundos para mensagens de sucesso
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusElement.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // Formulário de configuração do Supabase
+        document.getElementById('supabase-config-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('supabase-url').value.trim();
+            const key = document.getElementById('supabase-key').value.trim();
+            
+            if (!url || !key) {
+                showConfigStatus('Preencha todos os campos obrigatórios!', 'error');
+                return;
+            }
+            
+            // Salvar configuração
+            supabaseConfig.url = url;
+            supabaseConfig.key = key;
+            
+            localStorage.setItem('supabase_url', url);
+            localStorage.setItem('supabase_key', key);
+            
+            showConfigStatus('Configuração salva com sucesso!', 'success');
+            updateConnectionStatus();
+        });
+
+        async function performBackup() {
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                alert('Configure o Supabase primeiro na aba "Configuração"!');
+                return;
+            }
+            
+            if (projects.length === 0) {
+                alert('Não há projetos para fazer backup!');
+                return;
+            }
+            
+            const backupBtn = document.getElementById('backup-btn');
+            const originalText = backupBtn.innerHTML;
+            
+            try {
+                backupBtn.disabled = true;
+                backupBtn.innerHTML = 'Fazendo backup...';
+                
+                // Preparar dados para backup
+                const backupData = {
+                    user_id: 'portfolio_user_' + Date.now(),
+                    backup_date: new Date().toISOString(),
+                    projects_count: projects.length,
+                    projects_data: projects.map(project => ({
+                        ...project,
+                        images: project.images.length, // Apenas contar imagens
+                        videoFile: project.videoFile ? true : false
+                    }))
+                };
+                
+                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    },
+                    body: JSON.stringify(backupData)
+                });
+                
+                if (response.ok) {
+                    alert('Backup realizado com sucesso!');
+                    loadBackupHistory();
+                } else {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Erro no backup:', error);
+                alert('Erro ao fazer backup. Verifique sua conexão e configurações.');
+            } finally {
+                backupBtn.disabled = false;
+                backupBtn.innerHTML = originalText;
+            }
+        }
+
+        async function loadBackupHistory() {
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup?order=created_at.desc&limit=10`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const backups = await response.json();
+                    displayBackupHistory(backups);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+
+        function displayBackupHistory(backups) {
+            const historyElement = document.getElementById('backup-history');
+            
+            if (backups.length === 0) {
+                historyElement.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhum backup realizado ainda</p>';
+                return;
+            }
+            
+            historyElement.innerHTML = backups.map(backup => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="font-medium text-gray-800">${backup.projects_count} projetos</div>
+                        <div class="text-sm text-gray-500">${new Date(backup.backup_date).toLocaleString('pt-BR')}</div>
+                    </div>
+                    <div class="text-green-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Fechar modal de configuração ao clicar fora
+        document.getElementById('supabase-config-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSupabaseConfig();
+            }
+        });
+
+        // Função para exportar para Excel
+        function exportToExcel() {
+            if (projects.length === 0) {
+                alert('Não há projetos para exportar!');
+                return;
+            }
+
+            // Preparar dados para Excel com formatação melhorada
+            const excelData = projects.map((project, index) => ({
+                'Nº': index + 1,
+                'ID do Projeto': project.id,
+                'Título do Projeto': project.title,
+                'Descrição Completa': project.description,
+                'URL do Projeto': project.link || 'Não informado',
+                'Data de Criação': project.date ? new Date(project.date).toLocaleDateString('pt-BR') : 'Não informada',
+                'Data de Cadastro': project.createdAt ? new Date(project.createdAt).toLocaleDateString('pt-BR') : 'Não informada',
+                'Hora de Cadastro': project.createdAt ? new Date(project.createdAt).toLocaleTimeString('pt-BR') : 'Não informada',
+                'Quantidade de Imagens': project.images.length,
+                'Possui Vídeo': project.video || project.videoFile ? 'Sim' : 'Não',
+                'Tipo de Vídeo': project.video ? 'Link Externo' : project.videoFile ? 'Arquivo Local' : 'Nenhum',
+                'Status do Link': project.link ? 'Disponível' : 'Não informado'
+            }));
+
+            // Criar HTML formatado para Excel
+            let htmlContent = `
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+                        th { background-color: #8e44ad; color: white; font-weight: bold; padding: 12px; border: 1px solid #ddd; text-align: center; }
+                        td { padding: 10px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        tr:hover { background-color: #f5f5f5; }
+                        .number { text-align: center; font-weight: bold; }
+                        .date { text-align: center; }
+                        .status-sim { color: #27ae60; font-weight: bold; }
+                        .status-nao { color: #e74c3c; }
+                    </style>
+                </head>
+                <body>
+                    <h2 style="color: #8e44ad; text-align: center; margin-bottom: 20px;">Relatório de Projetos - ${new Date().toLocaleDateString('pt-BR')}</h2>
+                    <table>
+                        <thead>
+                            <tr>`;
+
+            // Adicionar cabeçalhos
+            const headers = Object.keys(excelData[0]);
+            headers.forEach(header => {
+                htmlContent += `<th>${header}</th>`;
+            });
+            htmlContent += `</tr></thead><tbody>`;
+
+            // Adicionar dados
+            excelData.forEach(row => {
+                htmlContent += '<tr>';
+                headers.forEach(header => {
+                    let cellClass = '';
+                    let cellValue = row[header];
+                    
+                    // Aplicar classes CSS baseadas no conteúdo
+                    if (header === 'Nº' || header === 'Quantidade de Imagens') {
+                        cellClass = 'number';
+                    } else if (header.includes('Data') || header.includes('Hora')) {
+                        cellClass = 'date';
+                    } else if (cellValue === 'Sim' || cellValue === 'Disponível') {
+                        cellClass = 'status-sim';
+                    } else if (cellValue === 'Não' || cellValue === 'Não informado' || cellValue === 'Nenhum') {
+                        cellClass = 'status-nao';
+                    }
+                    
+                    htmlContent += `<td class="${cellClass}">${cellValue}</td>`;
+                });
+                htmlContent += '</tr>';
             });
 
-            // Projeto de exemplo 2
-            projects.push({
-                id: 2,
-                title: "App Mobile de Delivery",
-                description: "Aplicativo móvel para delivery de comida com rastreamento em tempo real e sistema de avaliações.",
-                link: "https://exemplo-delivery.com",
-                images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZTkxZTYzIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5EZWxpdmVyeSBBcHA8L3RleHQ+Cjwvc3ZnPgo='],
-                video: null,
-                videoFile: null
-            });
+            htmlContent += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
+                        <p>Total de projetos: ${projects.length}</p>
+                        <p>Relatório gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                    </div>
+                </body>
+                </html>`;
+
+            // Download do arquivo
+            const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Relatorio_Projetos_${new Date().toISOString().split('T')[0]}.xls`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert('Relatório Excel exportado com sucesso! Arquivo formatado com colunas organizadas.');
+        }
+
+        // Função para exportar para JSON
+        function exportToJSON() {
+            if (projects.length === 0) {
+                alert('Não há projetos para exportar!');
+                return;
+            }
+
+            // Preparar dados (sem as imagens em base64 para reduzir tamanho)
+            const jsonData = {
+                exportDate: new Date().toISOString(),
+                totalProjects: projects.length,
+                projects: projects.map(project => ({
+                    ...project,
+                    images: project.images.map((img, index) => `imagem_${project.id}_${index + 1}`),
+                    videoFile: project.videoFile ? `video_${project.id}` : null
+                }))
+            };
+
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `projetos_backup_${new Date().toISOString().split('T')[0]}.json`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert('Backup JSON exportado com sucesso!');
+        }
+
+
+
+        // Função para carregar backup do localStorage
+        function loadFromLocalStorage() {
+            const savedProjects = localStorage.getItem('portfolio_projects');
+            if (savedProjects) {
+                try {
+                    projects = JSON.parse(savedProjects);
+                    renderProjects('projects-grid');
+                    renderProjects('projects-only-grid');
+                } catch (error) {
+                    console.error('Erro ao carregar projetos salvos:', error);
+                }
+            }
+        }
+
+        // Função para salvar no localStorage
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('portfolio_projects', JSON.stringify(projects));
+            } catch (error) {
+                console.error('Erro ao salvar projetos:', error);
+            }
+        }
+
+        // Inicializar campos de data com a data atual
+        function initializeDateFields() {
+            const today = new Date().toISOString().split('T')[0];
+            const projectDateField = document.getElementById('project-date');
+            const modalProjectDateField = document.getElementById('modal-project-date');
+            
+            if (projectDateField) projectDateField.value = today;
+            if (modalProjectDateField) modalProjectDateField.value = today;
+        }
+
+        // Adicionar alguns projetos de exemplo
+        window.addEventListener('load', function() {
+            // Inicializar campos de data
+            initializeDateFields();
+            
+            // Carregar projetos salvos primeiro
+            loadFromLocalStorage();
+            
+            // Se não houver projetos salvos, adicionar exemplos
+            if (projects.length === 0) {
+                // Projeto de exemplo 1
+                projects.push({
+                    id: 1,
+                    title: "Sistema de E-commerce",
+                    description: "Plataforma completa de vendas online com painel administrativo, carrinho de compras e integração com pagamentos.",
+                    link: "https://exemplo-ecommerce.com",
+                    date: "2024-01-15",
+                    createdAt: new Date().toISOString(),
+                    images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjOGU0NGFkIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5FLWNvbW1lcmNlPC90ZXh0Pgo8L3N2Zz4K'],
+                    video: null,
+                    videoFile: null
+                });
+
+                // Projeto de exemplo 2
+                projects.push({
+                    id: 2,
+                    title: "App Mobile de Delivery",
+                    description: "Aplicativo móvel para delivery de comida com rastreamento em tempo real e sistema de avaliações.",
+                    link: "https://exemplo-delivery.com",
+                    date: "2024-02-20",
+                    createdAt: new Date().toISOString(),
+                    images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZTkxZTYzIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5EZWxpdmVyeSBBcHA8L3RleHQ+Cjwvc3ZnPgo='],
+                    video: null,
+                    videoFile: null
+                });
+            }
 
             renderProjects('projects-grid');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9758c49794f0ef86',t:'MTc1NjI2ODMzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97606eae820436f4',t:'MTc1NjM0ODcwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
