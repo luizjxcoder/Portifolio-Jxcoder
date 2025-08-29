@@ -95,6 +95,35 @@
         .nav-link.active::after {
             width: 100%;
         }
+        
+        /* Slider personalizado */
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e5e7eb;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8e44ad, #02C2E9);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8e44ad, #02C2E9);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body class="bg-custom-gray min-h-screen">
@@ -241,6 +270,35 @@
                                     <div>
                                         <label class="block text-xs font-medium text-gray-700 mb-1">Data de Criação</label>
                                         <input type="date" id="project-date" value="" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Progresso do Projeto</label>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex-1 relative">
+                                                    <input type="range" id="project-progress" min="0" max="100" value="0" class="w-full h-3 bg-gray-200 rounded-full appearance-none cursor-pointer slider" style="background: linear-gradient(to right, #8e44ad 0%, #02C2E9 var(--progress, 0%), #e5e7eb var(--progress, 0%), #e5e7eb 100%);">
+                                                    <div class="absolute -top-8 left-0 right-0 flex justify-between text-xs text-gray-500 pointer-events-none">
+                                                        <span>0%</span>
+                                                        <span>25%</span>
+                                                        <span>50%</span>
+                                                        <span>75%</span>
+                                                        <span>100%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-3 py-1 rounded-full text-sm font-bold min-w-[4rem] text-center">
+                                                    <span id="progress-value">0%</span>
+                                                </div>
+                                            </div>
+                                            <select id="project-status" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                                <option value="planning">🎯 Planejamento</option>
+                                                <option value="development">⚡ Em Desenvolvimento</option>
+                                                <option value="testing">🧪 Em Testes</option>
+                                                <option value="completed">✅ Concluído</option>
+                                                <option value="paused">⏸️ Pausado</option>
+                                                <option value="cancelled">❌ Cancelado</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     
                                     <div>
@@ -454,6 +512,35 @@
                     </div>
                     
                     <div>
+                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Progresso do Projeto</label>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 relative">
+                                    <input type="range" id="modal-project-progress" min="0" max="100" value="0" class="w-full h-3 bg-gray-200 rounded-full appearance-none cursor-pointer slider" style="background: linear-gradient(to right, #8e44ad 0%, #02C2E9 var(--progress, 0%), #e5e7eb var(--progress, 0%), #e5e7eb 100%);">
+                                    <div class="absolute -top-8 left-0 right-0 flex justify-between text-xs text-gray-500 pointer-events-none">
+                                        <span>0%</span>
+                                        <span>25%</span>
+                                        <span>50%</span>
+                                        <span>75%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-3 py-1 rounded-full text-sm font-bold min-w-[4rem] text-center">
+                                    <span id="modal-progress-value">0%</span>
+                                </div>
+                            </div>
+                            <select id="modal-project-status" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
+                                <option value="planning">🎯 Planejamento</option>
+                                <option value="development">⚡ Em Desenvolvimento</option>
+                                <option value="testing">🧪 Em Testes</option>
+                                <option value="completed">✅ Concluído</option>
+                                <option value="paused">⏸️ Pausado</option>
+                                <option value="cancelled">❌ Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Vídeo (YouTube/Vimeo)</label>
                         <input type="text" id="modal-project-video" placeholder="Link do YouTube/Vimeo" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm mb-2">
                         <input type="file" id="modal-project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
@@ -623,6 +710,8 @@
   id SERIAL PRIMARY KEY,
   user_id TEXT NOT NULL,
   backup_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  backup_type TEXT DEFAULT 'manual',
+  last_project TEXT,
   projects_count INTEGER NOT NULL,
   projects_data JSONB NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -669,6 +758,21 @@
                             <h4 class="font-semibold text-gray-800 mb-4">Histórico de Backups</h4>
                             <div id="backup-history" class="space-y-2">
                                 <p class="text-gray-500 text-center py-4">Nenhum backup realizado ainda</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-800">Backup Automático</h4>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="auto-backup-toggle" class="sr-only peer" onchange="toggleAutoBackup()">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-custom-purple peer-checked:to-custom-blue"></div>
+                                </label>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Quando ativado, faz backup automaticamente após cada alteração nos projetos</p>
+                            <div id="backup-status-indicator" class="text-xs text-gray-500">
+                                <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                                Backup automático desativado
                             </div>
                         </div>
                         
@@ -832,7 +936,12 @@
             document.getElementById('modal-project-description').value = project.description;
             document.getElementById('modal-project-link').value = project.link || '';
             document.getElementById('modal-project-date').value = project.date || '';
+            document.getElementById('modal-project-progress').value = project.progress || 0;
+            document.getElementById('modal-project-status').value = project.status || 'planning';
             document.getElementById('modal-project-video').value = project.video || '';
+            
+            // Atualizar preview da barra de progresso
+            updateProgressBar('modal-project-progress', 'modal-progress-value');
             
             // Mostrar imagens atuais
             if (project.images && project.images.length > 0) {
@@ -906,182 +1015,335 @@
         });
 
         function handleProjectSubmission(formId) {
-            console.log('handleProjectSubmission chamado com formId:', formId);
+            console.log('🚀 Iniciando criação/edição de projeto com formId:', formId);
             
             const isModal = formId === 'project-form-modal-form';
             const prefix = isModal ? 'modal-' : '';
             
-            const title = document.getElementById(prefix + 'project-title').value;
-            const description = document.getElementById(prefix + 'project-description').value;
-            const link = document.getElementById(prefix + 'project-link').value;
-            const date = document.getElementById(prefix + 'project-date').value || new Date().toISOString().split('T')[0];
-            const images = document.getElementById(prefix + 'project-images').files;
-            const videoLink = document.getElementById(prefix + 'project-video').value;
-            const videoFile = document.getElementById(prefix + 'project-video-file').files[0];
-            
-            console.log('Dados do formulário:', { title, description, link, date, imagesCount: images.length });
-            
-            // Validação básica
-            if (!title.trim() || !description.trim()) {
-                alert('Por favor, preencha pelo menos o título e a descrição do projeto.');
-                return;
-            }
-            
-            // Verificar se estamos editando
-            if (editingProjectId) {
-                // Modo edição
-                const existingProject = projects.find(p => p.id === editingProjectId);
-                if (!existingProject) return;
+            try {
+                // Capturar dados do formulário
+                const titleElement = document.getElementById(prefix + 'project-title');
+                const descriptionElement = document.getElementById(prefix + 'project-description');
+                const linkElement = document.getElementById(prefix + 'project-link');
+                const dateElement = document.getElementById(prefix + 'project-date');
+                const progressElement = document.getElementById(prefix + 'project-progress');
+                const statusElement = document.getElementById(prefix + 'project-status');
+                const imagesElement = document.getElementById(prefix + 'project-images');
+                const videoElement = document.getElementById(prefix + 'project-video');
+                const videoFileElement = document.getElementById(prefix + 'project-video-file');
                 
-                // Atualizar dados básicos
-                existingProject.title = title;
-                existingProject.description = description;
-                existingProject.link = link;
-                existingProject.date = date;
-                existingProject.video = videoLink || null;
-                existingProject.updatedAt = new Date().toISOString();
-                
-                // Processar novas imagens se houver
-                if (images.length > 0) {
-                    let newImages = [];
-                    let processedCount = 0;
-                    
-                    Array.from(images).forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            newImages.push(e.target.result);
-                            processedCount++;
-                            
-                            if (processedCount === images.length) {
-                                // Adicionar novas imagens às existentes
-                                existingProject.images = existingProject.images.concat(newImages);
-                                finalizeProjectEdit(existingProject, isModal, videoFile);
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                } else {
-                    finalizeProjectEdit(existingProject, isModal, videoFile);
+                if (!titleElement || !descriptionElement) {
+                    console.error('❌ Elementos do formulário não encontrados');
+                    alert('Erro interno: elementos do formulário não encontrados');
+                    return;
                 }
-            } else {
-                // Modo criação
-                const project = {
-                    id: Date.now() + Math.random(), // ID único mais robusto
-                    title: title.trim(),
-                    description: description.trim(),
-                    link: link.trim() || null,
+                
+                const title = titleElement.value?.trim();
+                const description = descriptionElement.value?.trim();
+                const link = linkElement?.value?.trim() || '';
+                const date = dateElement?.value || new Date().toISOString().split('T')[0];
+                const progress = parseInt(progressElement?.value || 0);
+                const status = statusElement?.value || 'planning';
+                const images = imagesElement?.files || [];
+                const videoLink = videoElement?.value?.trim() || '';
+                const videoFile = videoFileElement?.files?.[0] || null;
+                
+                console.log('📋 Dados capturados:', { 
+                    title, 
+                    description, 
+                    link, 
                     date,
+                    progress,
+                    status,
+                    imagesCount: images?.length || 0,
+                    hasVideoLink: !!videoLink,
+                    hasVideoFile: !!videoFile
+                });
+                
+                // Validação obrigatória
+                if (!title || !description) {
+                    alert('❌ Por favor, preencha pelo menos o título e a descrição do projeto.');
+                    return;
+                }
+                
+                // Verificar se estamos editando
+                if (editingProjectId) {
+                    console.log('✏️ Modo edição - ID:', editingProjectId);
+                    handleProjectEdit(title, description, link, date, progress, status, images, videoLink, videoFile, isModal);
+                } else {
+                    console.log('➕ Modo criação de novo projeto');
+                    handleProjectCreation(title, description, link, date, progress, status, images, videoLink, videoFile, isModal);
+                }
+            } catch (error) {
+                console.error('❌ Erro ao processar formulário:', error);
+                alert('Erro ao processar dados do formulário. Tente novamente.');
+            }
+        }
+
+        function handleProjectCreation(title, description, link, date, progress, status, images, videoLink, videoFile, isModal) {
+            console.log('🔨 Criando novo projeto...');
+            
+            try {
+                // Criar objeto do projeto com ID único
+                const projectId = Date.now() + Math.floor(Math.random() * 1000);
+                const project = {
+                    id: projectId,
+                    title: title,
+                    description: description,
+                    link: link || '',
+                    date: date,
+                    progress: progress || 0,
+                    status: status || 'planning',
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                     images: [],
-                    video: videoLink.trim() || null,
+                    video: videoLink || '',
                     videoFile: null,
-                    status: 'active',
                     priority: 'normal',
                     category: 'geral',
                     tags: []
                 };
                 
-                // Processar imagens
-                if (images.length > 0) {
-                    let processedCount = 0;
+                console.log('📦 Projeto criado com ID:', projectId, project);
+                
+                // Processar imagens se houver
+                if (images && images.length > 0) {
+                    console.log('🖼️ Processando', images.length, 'imagens...');
+                    processProjectImages(project, images, videoFile, isModal, true);
+                } else {
+                    console.log('🖼️ Nenhuma imagem fornecida, usando imagem padrão');
+                    // Adicionar imagem padrão
+                    project.images.push(createDefaultImage());
+                    finalizeProjectSave(project, videoFile, isModal, true);
+                }
+            } catch (error) {
+                console.error('❌ Erro na criação do projeto:', error);
+                alert('Erro ao criar projeto. Tente novamente.');
+            }
+        }
+
+        function handleProjectEdit(title, description, link, date, progress, status, images, videoLink, videoFile, isModal) {
+            console.log('✏️ Editando projeto existente...');
+            
+            try {
+                const existingProject = projects.find(p => p.id === editingProjectId);
+                if (!existingProject) {
+                    console.error('❌ Projeto não encontrado para edição');
+                    alert('Projeto não encontrado para edição.');
+                    return;
+                }
+                
+                // Atualizar dados básicos
+                existingProject.title = title;
+                existingProject.description = description;
+                existingProject.link = link || '';
+                existingProject.date = date;
+                existingProject.progress = progress || 0;
+                existingProject.status = status || 'planning';
+                existingProject.video = videoLink || '';
+                existingProject.updatedAt = new Date().toISOString();
+                
+                console.log('📝 Dados básicos atualizados:', existingProject);
+                
+                // Processar novas imagens se houver
+                if (images && images.length > 0) {
+                    console.log('🖼️ Processando', images.length, 'novas imagens...');
+                    processProjectImages(existingProject, images, videoFile, isModal, false);
+                } else {
+                    console.log('📝 Sem novas imagens, finalizando edição');
+                    finalizeProjectSave(existingProject, videoFile, isModal, false);
+                }
+            } catch (error) {
+                console.error('❌ Erro na edição do projeto:', error);
+                alert('Erro ao editar projeto. Tente novamente.');
+            }
+        }
+
+        function processProjectImages(project, images, videoFile, isModal, isNewProject) {
+            try {
+                let processedCount = 0;
+                const totalImages = images.length;
+                const newImages = [];
+                
+                console.log('🔄 Iniciando processamento de', totalImages, 'imagens');
+                
+                if (totalImages === 0) {
+                    console.log('📝 Nenhuma imagem para processar');
+                    finalizeProjectSave(project, videoFile, isModal, isNewProject);
+                    return;
+                }
+                
+                Array.from(images).forEach((file, index) => {
+                    if (!file || !file.type.startsWith('image/')) {
+                        console.warn(`⚠️ Arquivo ${index + 1} não é uma imagem válida`);
+                        processedCount++;
+                        if (processedCount === totalImages) {
+                            finalizeImageProcessing();
+                        }
+                        return;
+                    }
                     
-                    Array.from(images).forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            project.images.push(e.target.result);
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            newImages.push(e.target.result);
                             processedCount++;
                             
-                            if (processedCount === images.length) {
-                                finalizeProject(project, isModal, videoFile);
+                            console.log(`✅ Imagem ${processedCount}/${totalImages} processada`);
+                            
+                            if (processedCount === totalImages) {
+                                finalizeImageProcessing();
                             }
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                } else {
-                    // Usar imagem padrão se nenhuma for fornecida
-                    project.images.push('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzUgMTIwSDIyNVYxODBIMTc1VjEyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTE1MCAyMTBIMjUwVjI0MEgxNTBWMjEwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K');
-                    finalizeProject(project, isModal, videoFile);
+                        } catch (error) {
+                            console.error('❌ Erro ao processar resultado da imagem:', error);
+                            processedCount++;
+                            if (processedCount === totalImages) {
+                                finalizeImageProcessing();
+                            }
+                        }
+                    };
+                    reader.onerror = function(error) {
+                        console.error('❌ Erro ao ler arquivo de imagem:', error);
+                        processedCount++;
+                        if (processedCount === totalImages) {
+                            finalizeImageProcessing();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+                
+                function finalizeImageProcessing() {
+                    console.log('🎉 Processamento de imagens finalizado!');
+                    
+                    if (isNewProject) {
+                        project.images = newImages.length > 0 ? newImages : [createDefaultImage()];
+                    } else {
+                        // Para edição, adicionar às imagens existentes
+                        if (newImages.length > 0) {
+                            project.images = project.images.concat(newImages);
+                        }
+                    }
+                    
+                    finalizeProjectSave(project, videoFile, isModal, isNewProject);
                 }
+                
+            } catch (error) {
+                console.error('❌ Erro no processamento de imagens:', error);
+                // Em caso de erro, usar imagem padrão para novos projetos
+                if (isNewProject && (!project.images || project.images.length === 0)) {
+                    project.images = [createDefaultImage()];
+                }
+                finalizeProjectSave(project, videoFile, isModal, isNewProject);
             }
         }
 
-        function finalizeProject(project, isModal = false, videoFile = null) {
-            // Processar vídeo se houver arquivo
+        function finalizeProjectSave(project, videoFile, isModal, isNewProject) {
+            console.log('🏁 Finalizando salvamento do projeto...');
+            
+            // Processar vídeo se houver
             if (videoFile) {
+                console.log('🎥 Processando arquivo de vídeo...');
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     project.videoFile = e.target.result;
-                    completeProjectCreation(project, isModal);
+                    console.log('✅ Vídeo processado');
+                    completeProjectSave(project, isModal, isNewProject);
+                };
+                reader.onerror = function(error) {
+                    console.error('❌ Erro ao processar vídeo:', error);
+                    completeProjectSave(project, isModal, isNewProject);
                 };
                 reader.readAsDataURL(videoFile);
             } else {
-                completeProjectCreation(project, isModal);
+                console.log('📝 Sem vídeo para processar');
+                completeProjectSave(project, isModal, isNewProject);
             }
         }
 
-        function completeProjectCreation(project, isModal) {
-            // Adicionar projeto ao array
-            projects.push(project);
+        function completeProjectSave(project, isModal, isNewProject) {
+            console.log('💾 Completando salvamento...');
             
-            // Salvar no localStorage
-            saveToLocalStorage();
-            
-            // Re-renderizar projetos
-            renderProjects('projects-grid');
-            renderProjects('projects-only-grid');
-            
-            // Fechar formulário
-            if (isModal) {
-                closeProjectModal();
-            } else {
-                toggleProjectForm();
+            try {
+                // Validar dados do projeto antes de salvar
+                if (!project || !project.title || !project.description) {
+                    console.error('❌ Dados do projeto inválidos:', project);
+                    alert('Erro: dados do projeto inválidos.');
+                    return;
+                }
+                
+                if (isNewProject) {
+                    // Verificar se o projeto já existe (evitar duplicatas)
+                    const existingProject = projects.find(p => p.id === project.id);
+                    if (existingProject) {
+                        console.warn('⚠️ Projeto já existe, atualizando ao invés de criar');
+                        Object.assign(existingProject, project);
+                    } else {
+                        // Adicionar novo projeto ao array
+                        projects.push(project);
+                        console.log('➕ Projeto adicionado ao array. Total:', projects.length);
+                    }
+                } else {
+                    console.log('✏️ Projeto editado no array');
+                }
+                
+                // Salvar no localStorage
+                const saveSuccess = saveToLocalStorage();
+                if (!saveSuccess) {
+                    console.error('❌ Falha ao salvar no localStorage');
+                    alert('Erro ao salvar dados localmente.');
+                    return;
+                }
+                
+                console.log('💾 Dados salvos no localStorage com sucesso');
+                
+                // Fazer backup automático
+                if (autoBackupEnabled && supabaseConfig.url && supabaseConfig.key) {
+                    const backupAction = isNewProject ? 'criacao' : 'edicao';
+                    performAutoBackup(backupAction, project.title);
+                }
+                
+                // Re-renderizar projetos em ambos os grids
+                renderProjects('projects-grid');
+                renderProjects('projects-only-grid');
+                console.log('🔄 Grids atualizados');
+                
+                // Limpar e fechar formulário
+                if (isModal) {
+                    document.getElementById('project-form-modal-form').reset();
+                    updateProgressBar('modal-project-progress', 'modal-progress-value');
+                    closeProjectModal();
+                } else {
+                    document.getElementById('project-form').reset();
+                    updateProgressBar('project-progress', 'progress-value');
+                    toggleProjectForm();
+                }
+                console.log('📋 Formulário limpo e fechado');
+                
+                // Limpar variável de edição
+                editingProjectId = null;
+                
+                // Mostrar mensagem de sucesso
+                const action = isNewProject ? 'criado' : 'atualizado';
+                alert(`✅ Projeto "${project.title}" ${action} com sucesso!`);
+                
+                console.log('🎉 Processo concluído com sucesso!');
+                console.log('📊 Estado atual:', {
+                    totalProjects: projects.length,
+                    lastProject: projects[projects.length - 1]?.title,
+                    projectData: project
+                });
+                
+            } catch (error) {
+                console.error('❌ Erro durante o salvamento:', error);
+                alert('❌ Erro ao salvar o projeto. Tente novamente.');
             }
-            
-            // Mostrar mensagem de sucesso
-            alert(`Projeto "${project.title}" adicionado com sucesso!`);
-            
-            // Log para debug
-            console.log('Projeto criado:', project);
-            console.log('Total de projetos:', projects.length);
         }
 
-        function finalizeProjectEdit(project, isModal = false, videoFile = null) {
-            // Processar vídeo se houver arquivo
-            if (videoFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    project.videoFile = e.target.result;
-                    completeProjectEdit(project, isModal);
-                };
-                reader.readAsDataURL(videoFile);
-            } else {
-                completeProjectEdit(project, isModal);
-            }
+        function createDefaultImage() {
+            return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzUgMTIwSDIyNVYxODBIMTc1VjEyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTE1MCAyMTBIMjUwVjI0MEgxNTBWMjEwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
         }
 
-        function completeProjectEdit(project, isModal) {
-            // Salvar no localStorage
-            saveToLocalStorage();
-            
-            // Re-renderizar projetos
-            renderProjects('projects-grid');
-            renderProjects('projects-only-grid');
-            
-            // Fechar formulário
-            if (isModal) {
-                closeProjectModal();
-            } else {
-                toggleProjectForm();
-            }
-            
-            // Mostrar mensagem de sucesso
-            alert(`Projeto "${project.title}" atualizado com sucesso!`);
-            
-            // Log para debug
-            console.log('Projeto editado:', project);
-            console.log('Total de projetos:', projects.length);
-        }
+
 
         function renderProjects(containerId) {
             const container = document.getElementById(containerId);
@@ -1138,7 +1400,14 @@
                             <div class="flex-1 flex flex-col justify-between min-h-[3rem]">
                                 <div>
                                     <h3 class="text-sm font-bold text-gray-800 mb-1">${project.title}</h3>
-                                    <p class="text-gray-600 text-xs leading-relaxed line-clamp-1">${getShortDescription(project.description)}</p>
+                                    <p class="text-gray-600 text-xs leading-relaxed line-clamp-1 mb-1">${getShortDescription(project.description)}</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">${getStatusEmoji(project.status || 'planning')}</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-1">
+                                            <div class="bg-gradient-to-r from-custom-purple to-custom-blue h-1 rounded-full transition-all duration-300" style="width: ${project.progress || 0}%"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-gray-600">${project.progress || 0}%</span>
+                                    </div>
                                 </div>
                                 
                                 <div class="flex items-center justify-between mt-2">
@@ -1193,6 +1462,17 @@
                             <h3 class="text-sm font-bold text-gray-800 mb-1">${project.title}</h3>
                             <p class="text-gray-600 text-xs mb-2 flex-grow line-clamp-2">${getShortDescription(project.description)}</p>
                             
+                            <!-- Barra de Progresso -->
+                            <div class="mb-2">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs text-gray-500">${getStatusEmoji(project.status || 'planning')} ${getStatusText(project.status || 'planning')}</span>
+                                    <span class="text-xs font-medium text-gray-700">${project.progress || 0}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-gradient-to-r from-custom-purple to-custom-blue h-1.5 rounded-full transition-all duration-300" style="width: ${project.progress || 0}%"></div>
+                                </div>
+                            </div>
+                            
                             <div class="flex items-center justify-between">
                                 <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-medium text-xs">
                                     Ver →
@@ -1240,6 +1520,18 @@
                             
                             <h3 class="text-lg font-bold text-gray-800 mb-2">${project.title}</h3>
                             <p class="text-gray-600 text-sm mb-3 flex-grow line-clamp-2">${getShortDescription(project.description)}</p>
+                            
+                            <!-- Barra de Progresso -->
+                            <div class="mb-3">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm text-gray-600">${getStatusEmoji(project.status || 'planning')} ${getStatusText(project.status || 'planning')}</span>
+                                    <span class="text-sm font-medium text-gray-700">${project.progress || 0}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-custom-purple to-custom-blue h-2 rounded-full transition-all duration-300" style="width: ${project.progress || 0}%"></div>
+                                </div>
+                            </div>
+                            
                             ${project.date ? `<p class="text-xs text-gray-500 mb-2">📅 ${formatDate(project.date)}</p>` : ''}
                             
                             <div class="flex items-center justify-between gap-2">
@@ -1352,12 +1644,37 @@
                             ` : ''}
                             
                             <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-custom-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <span class="text-sm text-gray-500">Status:</span>
+                                    <p class="font-medium text-gray-800">${getStatusEmoji(project.status || 'planning')} ${getStatusText(project.status || 'planning')}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
                                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 <div>
                                     <span class="text-sm text-gray-500">Imagens:</span>
                                     <p class="font-medium text-gray-800">${project.images.length} ${project.images.length === 1 ? 'imagem' : 'imagens'}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-custom-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <div>
+                                    <span class="text-sm text-gray-500">Progresso:</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-20 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-gradient-to-r from-custom-purple to-custom-blue h-2 rounded-full" style="width: ${project.progress || 0}%"></div>
+                                        </div>
+                                        <span class="font-medium text-gray-800">${project.progress || 0}%</span>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -1459,11 +1776,18 @@
             if (!project) return;
             
             if (confirm(`Tem certeza que deseja excluir o projeto "${project.title}"?`)) {
+                const projectTitle = project.title;
+                
                 // Remover projeto do array
                 projects = projects.filter(p => p.id !== projectId);
                 
                 // Salvar no localStorage
                 saveToLocalStorage();
+                
+                // Fazer backup automático
+                if (autoBackupEnabled) {
+                    performAutoBackup('exclusao', projectTitle);
+                }
                 
                 // Atualizar ambos os grids
                 renderProjects('projects-grid');
@@ -1500,6 +1824,11 @@
             url: localStorage.getItem('supabase_url') || '',
             key: localStorage.getItem('supabase_key') || ''
         };
+
+        // Sistema de Backup Automático
+        let autoBackupEnabled = localStorage.getItem('auto_backup_enabled') === 'true';
+        let backupQueue = [];
+        let isBackingUp = false;
 
         // Funções do Modal de Configuração do Supabase
         function openSupabaseConfig() {
@@ -1631,6 +1960,84 @@
             updateConnectionStatus();
         });
 
+        // Função de backup automático
+        async function performAutoBackup(action = 'manual', projectTitle = '') {
+            if (!supabaseConfig.url || !supabaseConfig.key || !autoBackupEnabled) {
+                return false;
+            }
+            
+            if (projects.length === 0) {
+                return false;
+            }
+            
+            // Evitar múltiplos backups simultâneos
+            if (isBackingUp) {
+                backupQueue.push({ action, projectTitle });
+                return false;
+            }
+            
+            isBackingUp = true;
+            
+            try {
+                // Preparar dados para backup
+                const backupData = {
+                    user_id: 'portfolio_user_auto',
+                    backup_date: new Date().toISOString(),
+                    backup_type: action,
+                    last_project: projectTitle,
+                    projects_count: projects.length,
+                    projects_data: projects.map(project => ({
+                        id: project.id,
+                        title: project.title,
+                        description: project.description,
+                        link: project.link || '',
+                        date: project.date,
+                        progress: project.progress || 0,
+                        status: project.status || 'planning',
+                        createdAt: project.createdAt,
+                        updatedAt: project.updatedAt,
+                        video: project.video || '',
+                        priority: project.priority || 'normal',
+                        category: project.category || 'geral',
+                        tags: project.tags || [],
+                        images_count: project.images ? project.images.length : 0,
+                        has_video_file: project.videoFile ? true : false
+                    }))
+                };
+                
+                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    },
+                    body: JSON.stringify(backupData)
+                });
+                
+                if (response.ok) {
+                    console.log(`✅ Backup automático realizado: ${action} - ${projectTitle}`);
+                    updateBackupStatus('success', action);
+                    
+                    // Processar próximo item da fila
+                    if (backupQueue.length > 0) {
+                        const nextBackup = backupQueue.shift();
+                        setTimeout(() => performAutoBackup(nextBackup.action, nextBackup.projectTitle), 1000);
+                    }
+                    
+                    return true;
+                } else {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('❌ Erro no backup automático:', error);
+                updateBackupStatus('error', action);
+                return false;
+            } finally {
+                isBackingUp = false;
+            }
+        }
+
         async function performBackup() {
             if (!supabaseConfig.url || !supabaseConfig.key) {
                 alert('Configure o Supabase primeiro na aba "Configuração"!');
@@ -1649,33 +2056,13 @@
                 backupBtn.disabled = true;
                 backupBtn.innerHTML = 'Fazendo backup...';
                 
-                // Preparar dados para backup
-                const backupData = {
-                    user_id: 'portfolio_user_' + Date.now(),
-                    backup_date: new Date().toISOString(),
-                    projects_count: projects.length,
-                    projects_data: projects.map(project => ({
-                        ...project,
-                        images: project.images.length, // Apenas contar imagens
-                        videoFile: project.videoFile ? true : false
-                    }))
-                };
+                const success = await performAutoBackup('manual', 'Backup manual');
                 
-                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': supabaseConfig.key,
-                        'Authorization': `Bearer ${supabaseConfig.key}`
-                    },
-                    body: JSON.stringify(backupData)
-                });
-                
-                if (response.ok) {
+                if (success) {
                     alert('Backup realizado com sucesso!');
                     loadBackupHistory();
                 } else {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                    throw new Error('Falha no backup');
                 }
             } catch (error) {
                 console.error('Erro no backup:', error);
@@ -1683,6 +2070,28 @@
             } finally {
                 backupBtn.disabled = false;
                 backupBtn.innerHTML = originalText;
+            }
+        }
+
+        // Atualizar status do backup na interface
+        function updateBackupStatus(status, action) {
+            const statusIndicator = document.getElementById('backup-status-indicator');
+            if (!statusIndicator) return;
+            
+            const now = new Date().toLocaleTimeString('pt-BR');
+            
+            if (status === 'success') {
+                statusIndicator.innerHTML = `
+                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Último backup: ${now} (${action})
+                `;
+                statusIndicator.className = 'text-xs text-green-600';
+            } else if (status === 'error') {
+                statusIndicator.innerHTML = `
+                    <span class="inline-block w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                    Erro no backup: ${now}
+                `;
+                statusIndicator.className = 'text-xs text-red-600';
             }
         }
 
@@ -1717,19 +2126,65 @@
                 return;
             }
             
-            historyElement.innerHTML = backups.map(backup => `
-                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                        <div class="font-medium text-gray-800">${backup.projects_count} projetos</div>
-                        <div class="text-sm text-gray-500">${new Date(backup.backup_date).toLocaleString('pt-BR')}</div>
+            historyElement.innerHTML = backups.map(backup => {
+                const backupTypeText = {
+                    'manual': 'Manual',
+                    'criacao': 'Criação',
+                    'edicao': 'Edição',
+                    'exclusao': 'Exclusão',
+                    'ativacao': 'Ativação'
+                };
+                
+                return `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">${backup.projects_count} projetos</div>
+                            <div class="text-sm text-gray-500">${new Date(backup.backup_date).toLocaleString('pt-BR')}</div>
+                            ${backup.backup_type ? `<div class="text-xs text-gray-400">${backupTypeText[backup.backup_type] || backup.backup_type}</div>` : ''}
+                            ${backup.last_project ? `<div class="text-xs text-blue-600">Último: ${backup.last_project}</div>` : ''}
+                        </div>
+                        <div class="text-green-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
                     </div>
-                    <div class="text-green-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+
+        // Função para ativar/desativar backup automático
+        function toggleAutoBackup() {
+            const toggle = document.getElementById('auto-backup-toggle');
+            const statusIndicator = document.getElementById('backup-status-indicator');
+            
+            autoBackupEnabled = toggle.checked;
+            localStorage.setItem('auto_backup_enabled', autoBackupEnabled.toString());
+            
+            if (autoBackupEnabled) {
+                if (!supabaseConfig.url || !supabaseConfig.key) {
+                    toggle.checked = false;
+                    autoBackupEnabled = false;
+                    localStorage.setItem('auto_backup_enabled', 'false');
+                    alert('Configure o Supabase primeiro antes de ativar o backup automático!');
+                    return;
+                }
+                
+                statusIndicator.innerHTML = `
+                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Backup automático ativado
+                `;
+                statusIndicator.className = 'text-xs text-green-600';
+                
+                // Fazer backup inicial
+                performAutoBackup('ativacao', 'Sistema ativado');
+            } else {
+                statusIndicator.innerHTML = `
+                    <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                    Backup automático desativado
+                `;
+                statusIndicator.className = 'text-xs text-gray-500';
+            }
         }
 
         // Fechar modal de configuração ao clicar fora
@@ -1941,6 +2396,70 @@
         
         // ==================== END LOCALSTORAGE FUNCTIONS ====================
         
+        // Funções da barra de progresso
+        function updateProgressBar(sliderId, valueId) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(valueId);
+            
+            if (!slider || !valueSpan) return;
+            
+            const value = slider.value;
+            valueSpan.textContent = value + '%';
+            
+            // Atualizar o gradiente do slider
+            const percentage = (value / 100) * 100;
+            slider.style.setProperty('--progress', percentage + '%');
+            slider.style.background = `linear-gradient(to right, #8e44ad 0%, #02C2E9 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`;
+        }
+
+        function setupProgressSliders() {
+            // Configurar slider do formulário sidebar
+            const sidebarSlider = document.getElementById('project-progress');
+            if (sidebarSlider) {
+                sidebarSlider.addEventListener('input', function() {
+                    updateProgressBar('project-progress', 'progress-value');
+                });
+                // Inicializar
+                updateProgressBar('project-progress', 'progress-value');
+            }
+
+            // Configurar slider do modal
+            const modalSlider = document.getElementById('modal-project-progress');
+            if (modalSlider) {
+                modalSlider.addEventListener('input', function() {
+                    updateProgressBar('modal-project-progress', 'modal-progress-value');
+                });
+                // Inicializar
+                updateProgressBar('modal-project-progress', 'modal-progress-value');
+            }
+        }
+
+        // Função para obter emoji do status
+        function getStatusEmoji(status) {
+            const statusEmojis = {
+                'planning': '🎯',
+                'development': '⚡',
+                'testing': '🧪',
+                'completed': '✅',
+                'paused': '⏸️',
+                'cancelled': '❌'
+            };
+            return statusEmojis[status] || '🎯';
+        }
+
+        // Função para obter texto do status
+        function getStatusText(status) {
+            const statusTexts = {
+                'planning': 'Planejamento',
+                'development': 'Em Desenvolvimento',
+                'testing': 'Em Testes',
+                'completed': 'Concluído',
+                'paused': 'Pausado',
+                'cancelled': 'Cancelado'
+            };
+            return statusTexts[status] || 'Planejamento';
+        }
+
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             // Definir data padrão como hoje
@@ -1950,13 +2469,40 @@
                 if (!input.value) input.value = today;
             });
             
+            // Configurar sliders de progresso
+            setupProgressSliders();
+            
             // Carregar projetos do localStorage
             loadFromLocalStorage();
+            
+            // Configurar estado inicial do backup automático
+            const autoBackupToggle = document.getElementById('auto-backup-toggle');
+            if (autoBackupToggle) {
+                autoBackupToggle.checked = autoBackupEnabled;
+                
+                // Atualizar status inicial
+                const statusIndicator = document.getElementById('backup-status-indicator');
+                if (statusIndicator) {
+                    if (autoBackupEnabled && supabaseConfig.url && supabaseConfig.key) {
+                        statusIndicator.innerHTML = `
+                            <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            Backup automático ativado
+                        `;
+                        statusIndicator.className = 'text-xs text-green-600';
+                    } else {
+                        statusIndicator.innerHTML = `
+                            <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                            Backup automático desativado
+                        `;
+                        statusIndicator.className = 'text-xs text-gray-500';
+                    }
+                }
+            }
             
             // Renderizar projetos iniciais
             renderProjects('projects-grid');
             renderProjects('projects-only-grid');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976dd413e66109d9',t:'MTc1NjQ4OTE3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f24ac8635af62',t:'MTc1NjUwMjk2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
