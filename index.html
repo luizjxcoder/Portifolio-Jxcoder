@@ -780,6 +780,12 @@
                             <button onclick="performBackup()" id="backup-btn" class="flex-1 bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                                 Fazer Backup Agora
                             </button>
+                            <button onclick="autoSyncProjects()" id="sync-btn" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                Sincronizar Agora
+                            </button>
+                            <button onclick="restoreFromBackup()" id="restore-btn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                Restaurar Específico
+                            </button>
                             <button onclick="loadBackupHistory()" class="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                                 Atualizar
                             </button>
@@ -2073,6 +2079,290 @@
             }
         }
 
+        // Função para restaurar projetos do backup
+        async function restoreFromBackup() {
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                alert('Configure o Supabase primeiro na aba "Configuração"!');
+                return;
+            }
+            
+            const restoreBtn = document.getElementById('restore-btn');
+            const originalText = restoreBtn.innerHTML;
+            
+            try {
+                restoreBtn.disabled = true;
+                restoreBtn.innerHTML = 'Carregando backups...';
+                
+                // Buscar todos os backups disponíveis
+                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup?order=created_at.desc&limit=20`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
+                const backups = await response.json();
+                
+                if (backups.length === 0) {
+                    alert('Nenhum backup encontrado no banco de dados!');
+                    return;
+                }
+                
+                // Mostrar modal de seleção de backup
+                showRestoreModal(backups);
+                
+            } catch (error) {
+                console.error('Erro ao buscar backups:', error);
+                alert('Erro ao buscar backups. Verifique sua conexão e configurações.');
+            } finally {
+                restoreBtn.disabled = false;
+                restoreBtn.innerHTML = originalText;
+            }
+        }
+
+        // Função para mostrar modal de seleção de backup
+        function showRestoreModal(backups) {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'restore-modal';
+            
+            const backupTypeText = {
+                'manual': 'Manual',
+                'criacao': 'Criação',
+                'edicao': 'Edição',
+                'exclusao': 'Exclusão',
+                'ativacao': 'Ativação'
+            };
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto m-4 w-full">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800">Restaurar Projetos do Backup</h3>
+                            <button onclick="closeRestoreModal()" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-medium text-yellow-800">Atenção!</h4>
+                                    <p class="text-sm text-yellow-700 mt-1">
+                                        Restaurar um backup irá <strong>substituir todos os projetos atuais</strong>. 
+                                        Recomendamos fazer um backup dos dados atuais antes de continuar.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Selecione um backup para restaurar:</h4>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                ${backups.map((backup, index) => `
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors" onclick="selectBackup(${index})">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <input type="radio" name="backup-selection" value="${index}" class="text-custom-blue focus:ring-custom-blue">
+                                                    <div>
+                                                        <div class="font-semibold text-gray-800">${backup.projects_count} projetos</div>
+                                                        <div class="text-sm text-gray-600">${new Date(backup.backup_date).toLocaleString('pt-BR')}</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-500">
+                                                    <div>Tipo: ${backupTypeText[backup.backup_type] || backup.backup_type}</div>
+                                                    ${backup.last_project ? `<div>Último projeto: ${backup.last_project}</div>` : ''}
+                                                    <div>ID: ${backup.id}</div>
+                                                    <div>Usuário: ${backup.user_id}</div>
+                                                </div>
+                                                
+                                                ${backup.projects_data && backup.projects_data.length > 0 ? `
+                                                    <div class="mt-2 text-xs text-gray-400">
+                                                        Projetos: ${backup.projects_data.slice(0, 3).map(p => p.title).join(', ')}${backup.projects_data.length > 3 ? '...' : ''}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                            
+                                            <div class="text-right">
+                                                <div class="text-xs text-gray-400">
+                                                    ${backup.projects_count > projects.length ? 
+                                                        `<span class="text-green-600">+${backup.projects_count - projects.length} projetos</span>` : 
+                                                        backup.projects_count < projects.length ? 
+                                                        `<span class="text-red-600">${backup.projects_count - projects.length} projetos</span>` : 
+                                                        '<span class="text-gray-600">Mesmo número</span>'
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 pt-4 border-t">
+                            <button onclick="executeRestore()" id="execute-restore-btn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                Restaurar Backup Selecionado
+                            </button>
+                            <button onclick="closeRestoreModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Armazenar backups para uso posterior
+            window.availableBackups = backups;
+        }
+
+        // Função para selecionar backup
+        function selectBackup(index) {
+            const radio = document.querySelector(`input[name="backup-selection"][value="${index}"]`);
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+
+        // Função para executar a restauração
+        async function executeRestore() {
+            const selectedRadio = document.querySelector('input[name="backup-selection"]:checked');
+            
+            if (!selectedRadio) {
+                alert('Por favor, selecione um backup para restaurar!');
+                return;
+            }
+            
+            const backupIndex = parseInt(selectedRadio.value);
+            const selectedBackup = window.availableBackups[backupIndex];
+            
+            if (!selectedBackup || !selectedBackup.projects_data) {
+                alert('Backup selecionado não contém dados válidos!');
+                return;
+            }
+            
+            // Confirmação final
+            const confirmMessage = `
+Tem certeza que deseja restaurar este backup?
+
+📊 Backup selecionado:
+• Data: ${new Date(selectedBackup.backup_date).toLocaleString('pt-BR')}
+• Projetos: ${selectedBackup.projects_count}
+• Tipo: ${selectedBackup.backup_type}
+
+⚠️ ATENÇÃO: Todos os ${projects.length} projetos atuais serão substituídos!
+
+Esta ação não pode ser desfeita.
+            `;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            const executeBtn = document.getElementById('execute-restore-btn');
+            const originalText = executeBtn.innerHTML;
+            
+            try {
+                executeBtn.disabled = true;
+                executeBtn.innerHTML = 'Restaurando...';
+                
+                // Fazer backup dos dados atuais antes de restaurar
+                if (projects.length > 0) {
+                    console.log('Fazendo backup de segurança dos dados atuais...');
+                    await performAutoBackup('pre_restore', `Backup antes de restaurar ${selectedBackup.projects_count} projetos`);
+                }
+                
+                // Restaurar projetos do backup
+                const restoredProjects = selectedBackup.projects_data.map(projectData => ({
+                    id: projectData.id || Date.now() + Math.floor(Math.random() * 1000),
+                    title: projectData.title || 'Projeto sem título',
+                    description: projectData.description || 'Sem descrição',
+                    link: projectData.link || '',
+                    date: projectData.date || new Date().toISOString().split('T')[0],
+                    progress: projectData.progress || 0,
+                    status: projectData.status || 'planning',
+                    createdAt: projectData.createdAt || new Date().toISOString(),
+                    updatedAt: new Date().toISOString(), // Atualizar data de modificação
+                    images: projectData.images || [createDefaultImage()], // Usar imagem padrão se não houver
+                    video: projectData.video || '',
+                    videoFile: null, // Arquivos de vídeo não são restaurados
+                    priority: projectData.priority || 'normal',
+                    category: projectData.category || 'geral',
+                    tags: projectData.tags || [],
+                    // Marcar como restaurado
+                    restoredFrom: selectedBackup.id,
+                    restoredAt: new Date().toISOString()
+                }));
+                
+                // Substituir projetos atuais
+                projects.length = 0;
+                projects.push(...restoredProjects);
+                
+                // Salvar no localStorage
+                const saveSuccess = saveToLocalStorage();
+                if (!saveSuccess) {
+                    throw new Error('Falha ao salvar dados restaurados');
+                }
+                
+                // Fazer backup automático da restauração
+                if (autoBackupEnabled) {
+                    await performAutoBackup('restauracao', `${restoredProjects.length} projetos restaurados`);
+                }
+                
+                // Atualizar interface
+                renderProjects('projects-grid');
+                renderProjects('projects-only-grid');
+                updateLocalProjectsCount();
+                
+                // Fechar modal
+                closeRestoreModal();
+                
+                // Mostrar mensagem de sucesso
+                alert(`✅ Restauração concluída com sucesso!
+
+📊 Resultado:
+• ${restoredProjects.length} projetos restaurados
+• Data do backup: ${new Date(selectedBackup.backup_date).toLocaleString('pt-BR')}
+• Backup de segurança criado automaticamente
+
+Os projetos foram atualizados na interface!`);
+                
+                console.log(`🔄 Restauração concluída: ${restoredProjects.length} projetos restaurados do backup ${selectedBackup.id}`);
+                
+            } catch (error) {
+                console.error('Erro durante a restauração:', error);
+                alert('❌ Erro durante a restauração. Verifique o console para mais detalhes.');
+            } finally {
+                executeBtn.disabled = false;
+                executeBtn.innerHTML = originalText;
+            }
+        }
+
+        // Função para fechar modal de restauração
+        function closeRestoreModal() {
+            const modal = document.getElementById('restore-modal');
+            if (modal) {
+                modal.remove();
+            }
+            // Limpar dados temporários
+            if (window.availableBackups) {
+                delete window.availableBackups;
+            }
+        }
+
         // Atualizar status do backup na interface
         function updateBackupStatus(status, action) {
             const statusIndicator = document.getElementById('backup-status-indicator');
@@ -2132,7 +2422,21 @@
                     'criacao': 'Criação',
                     'edicao': 'Edição',
                     'exclusao': 'Exclusão',
-                    'ativacao': 'Ativação'
+                    'ativacao': 'Ativação',
+                    'pre_sync': 'Pré-Sincronização',
+                    'pre_restore': 'Pré-Restauração',
+                    'restauracao': 'Restauração'
+                };
+                
+                const typeColor = {
+                    'manual': 'text-blue-600',
+                    'criacao': 'text-green-600',
+                    'edicao': 'text-yellow-600',
+                    'exclusao': 'text-red-600',
+                    'ativacao': 'text-purple-600',
+                    'pre_sync': 'text-indigo-600',
+                    'pre_restore': 'text-orange-600',
+                    'restauracao': 'text-teal-600'
                 };
                 
                 return `
@@ -2140,7 +2444,7 @@
                         <div>
                             <div class="font-medium text-gray-800">${backup.projects_count} projetos</div>
                             <div class="text-sm text-gray-500">${new Date(backup.backup_date).toLocaleString('pt-BR')}</div>
-                            ${backup.backup_type ? `<div class="text-xs text-gray-400">${backupTypeText[backup.backup_type] || backup.backup_type}</div>` : ''}
+                            ${backup.backup_type ? `<div class="text-xs ${typeColor[backup.backup_type] || 'text-gray-400'}">${backupTypeText[backup.backup_type] || backup.backup_type}</div>` : ''}
                             ${backup.last_project ? `<div class="text-xs text-blue-600">Último: ${backup.last_project}</div>` : ''}
                         </div>
                         <div class="text-green-600">
@@ -2504,5 +2808,5 @@
             renderProjects('projects-only-grid');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f24ac8635af62',t:'MTc1NjUwMjk2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f4124b1a71e65',t:'MTc1NjUwNDEyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
