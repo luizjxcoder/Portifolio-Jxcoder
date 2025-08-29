@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfólio Moderno</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,6 +14,9 @@
                         'custom-gray': '#f5f5f5',
                         'custom-purple': '#8e44ad',
                         'custom-blue': '#02C2E9'
+                    },
+                    fontFamily: {
+                        'sans': ['Montserrat', 'sans-serif']
                     }
                 }
             }
@@ -191,14 +195,12 @@
                     </div>
                 </div>
 
-                <!-- Layout Responsivo: Formulário e Projetos -->
+                <!-- Layout Responsivo: Botão + Cards e Formulário -->
                 <div class="flex flex-col xl:flex-row gap-6">
-                    <!-- Formulário de Cadastro (Esquerda em telas grandes) -->
-                    <div class="w-full xl:w-80 xl:flex-shrink-0 xl:sticky xl:top-24 xl:h-fit">
-
-                        
+                    <!-- Sidebar com Formulário (Esquerda em telas grandes) -->
+                    <div id="form-sidebar" class="w-full xl:w-0 xl:flex-shrink-0 xl:sticky xl:top-24 xl:h-fit transition-all duration-500 ease-in-out overflow-hidden">
                         <!-- Formulário para telas grandes (1280px+) -->
-                        <div class="hidden xl:block gradient-border">
+                        <div id="project-form-container" class="hidden xl:block gradient-border transition-all duration-500 ease-in-out" style="max-height: 0; opacity: 0;">
                             <div class="gradient-border-content p-5">
                                 <h3 class="text-lg font-bold text-gray-800 mb-5 text-center">Adicionar Novo Projeto</h3>
                                 <form id="project-form" class="space-y-3">
@@ -234,17 +236,34 @@
                                         <input type="file" id="project-video-file" accept="video/*" class="w-full px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-custom-blue focus:border-transparent text-sm">
                                     </div>
                                     
-                                    <button type="submit" class="w-full bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2.5 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm">
-                                        Adicionar Projeto
-                                    </button>
+                                    <div class="flex gap-2 pt-2">
+                                        <button type="submit" class="flex-1 bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2.5 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm">
+                                            Adicionar
+                                        </button>
+                                        <button type="button" onclick="toggleProjectForm()" class="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-all duration-300 text-sm">
+                                            Fechar
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Grid de Projetos (Direita em telas grandes) -->
-                    <div class="flex-1 min-w-0">
-                        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    <!-- Container Principal: Botão + Cards -->
+                    <div id="main-content" class="flex-1 min-w-0 transition-all duration-500 ease-in-out">
+                        <!-- Botão New próximo aos cards -->
+                        <div class="hidden xl:flex items-center gap-4 mb-6">
+                            <button id="toggle-form-btn" onclick="toggleProjectForm()" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white py-2 px-3 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2 text-sm">
+                                <svg id="form-icon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span id="form-btn-text">New</span>
+                            </button>
+                            <div class="h-px bg-gray-200 flex-1"></div>
+                        </div>
+                        
+                        <!-- Grid de Projetos -->
+                        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                             <!-- Projetos serão inseridos aqui dinamicamente -->
                         </div>
                     </div>
@@ -579,7 +598,7 @@
                             
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                 <h5 class="font-semibold text-gray-800 mb-2">📋 SQL para criar a tabela:</h5>
-                                <div class="bg-gray-800 text-green-400 p-3 rounded text-sm font-mono overflow-x-auto">
+                                <div class="bg-gray-800 text-green-400 p-3 rounded text-sm overflow-x-auto" style="font-family: 'Courier New', monospace;">
                                     <pre>CREATE TABLE projects_backup (
   id SERIAL PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -652,6 +671,7 @@
         let currentSlides = {};
         let currentLayout = 'grid'; // 'grid' ou 'list'
         let projectsLayout = 'grid'; // Layout separado para a página de projetos
+        let isFormOpen = false; // Estado do formulário
 
         // Navegação
         function showSection(sectionName) {
@@ -678,6 +698,43 @@
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
+        }
+
+        // Função para abrir/fechar formulário
+        function toggleProjectForm() {
+            const container = document.getElementById('project-form-container');
+            const icon = document.getElementById('form-icon');
+            const btnText = document.getElementById('form-btn-text');
+            const sidebar = document.getElementById('form-sidebar');
+            
+            if (!isFormOpen) {
+                // Abrir formulário
+                container.style.maxHeight = '800px';
+                container.style.opacity = '1';
+                icon.style.transform = 'rotate(45deg)';
+                btnText.textContent = 'Close';
+                
+                // Expandir sidebar para mostrar formulário
+                sidebar.classList.remove('xl:w-0');
+                sidebar.classList.add('xl:w-80');
+                
+                isFormOpen = true;
+            } else {
+                // Fechar formulário
+                container.style.maxHeight = '0';
+                container.style.opacity = '0';
+                icon.style.transform = 'rotate(0deg)';
+                btnText.textContent = 'New';
+                
+                // Recolher sidebar
+                sidebar.classList.remove('xl:w-80');
+                sidebar.classList.add('xl:w-0');
+                
+                isFormOpen = false;
+                
+                // Limpar formulário ao fechar
+                document.getElementById('project-form').reset();
+            }
         }
 
         // Função para alterar layout da página principal
@@ -807,8 +864,8 @@
                 // Fechar modal e limpar formulário
                 closeProjectModal();
             } else {
-                // Limpar formulário da sidebar
-                document.getElementById('project-form').reset();
+                // Fechar formulário da sidebar e limpar
+                toggleProjectForm();
             }
             
             // Mostrar mensagem de sucesso
@@ -822,9 +879,9 @@
             // Atualizar classes do container baseado no layout
             if (containerId === 'projects-grid') {
                 if (currentLayout === 'grid') {
-                    container.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
+                    container.className = 'grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4';
                 } else {
-                    container.className = 'space-y-4';
+                    container.className = 'space-y-3';
                 }
             } else if (containerId === 'projects-only-grid') {
                 if (projectsLayout === 'grid') {
@@ -845,15 +902,64 @@
             const isListView = (currentLayout === 'list' && containerId === 'projects-grid') || 
                               (projectsLayout === 'list' && containerId === 'projects-only-grid');
             
+            // Função para resumir descrição
+            const getShortDescription = (description) => {
+                return description.length > 60 ? description.substring(0, 60) + '...' : description;
+            };
+            
             if (isListView) {
-                // Layout de Lista
+                // Layout de Lista - Reduzido
                 card.className = 'gradient-border transform hover:scale-[1.02] transition-all duration-300 hover:shadow-xl';
                 
                 card.innerHTML = `
-                    <div class="gradient-border-content p-4">
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <!-- Imagem -->
-                            <div class="slide-container w-full md:w-48 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                    <div class="gradient-border-content p-3">
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <!-- Imagem menor -->
+                            <div class="slide-container w-full md:w-20 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                ${project.images.map((img, index) => `
+                                    <div class="slide ${index === 0 ? 'active' : ''} h-full">
+                                        <img src="${img}" alt="${project.title}" class="w-full h-full object-cover">
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <!-- Conteúdo compacto -->
+                            <div class="flex-1 flex flex-col justify-between min-h-[3rem]">
+                                <div>
+                                    <h3 class="text-sm font-bold text-gray-800 mb-1">${project.title}</h3>
+                                    <p class="text-gray-600 text-xs leading-relaxed line-clamp-1">${getShortDescription(project.description)}</p>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mt-2">
+                                    <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-medium text-xs">
+                                        Ver →
+                                    </button>
+                                    <div class="flex items-center gap-1">
+                                        ${project.link ? `
+                                            <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-2 py-1 rounded-full hover:shadow-lg transition-all duration-300 font-medium text-xs">
+                                                Abrir
+                                            </a>
+                                        ` : ''}
+                                        <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-1 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Layout de Grade - Reduzido pela metade
+                if (containerId === 'projects-grid') {
+                    // Cards menores apenas no dashboard
+                    card.className = 'gradient-border transform hover:scale-105 transition-all duration-300 hover:shadow-xl';
+                    
+                    card.innerHTML = `
+                        <div class="gradient-border-content p-3 h-full flex flex-col">
+                            <div class="slide-container mb-3 h-24 bg-gray-100 rounded-lg overflow-hidden">
                                 ${project.images.map((img, index) => `
                                     <div class="slide ${index === 0 ? 'active' : ''} h-full">
                                         <img src="${img}" alt="${project.title}" class="w-full h-full object-cover">
@@ -862,105 +968,74 @@
                                 ${project.images.length > 1 ? `
                                     <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1">
                                         ${project.images.map((_, index) => `
-                                            <button onclick="changeSlide(${project.id}, ${index})" class="w-1.5 h-1.5 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"></button>
+                                            <button onclick="changeSlide(${project.id}, ${index})" class="w-1 h-1 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"></button>
                                         `).join('')}
                                     </div>
                                 ` : ''}
                             </div>
                             
-                            <!-- Conteúdo -->
-                            <div class="flex-1 flex flex-col justify-between min-h-[8rem]">
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-800 mb-2">${project.title}</h3>
-                                    <p class="text-gray-600 text-sm leading-relaxed line-clamp-2">${project.description}</p>
-                                    ${project.date ? `<p class="text-xs text-gray-500 mt-1">📅 ${formatDate(project.date)}</p>` : ''}
-                                </div>
-                                
-                                <div class="flex flex-col gap-3 mt-3">
-                                    <!-- Em telas pequenas: layout vertical -->
-                                    <div class="flex flex-col lg:hidden gap-3">
-                                        <div class="flex items-center justify-between">
-                                            <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
-                                                Ver Detalhes →
-                                            </button>
-                                            <div class="flex items-center gap-2">
-                                                ${project.link ? `
-                                                    <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-3 py-1.5 rounded-full hover:shadow-lg transition-all duration-300 font-medium text-xs">
-                                                        Ver Projeto
-                                                    </a>
-                                                ` : ''}
-                                                <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Em telas grandes: layout horizontal -->
-                                    <div class="hidden lg:flex items-center justify-between">
-                                        <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
-                                            Ver Detalhes →
-                                        </button>
-                                        <div class="flex items-center gap-2">
-                                            ${project.link ? `
-                                                <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 font-medium text-sm whitespace-nowrap">
-                                                    Ver Projeto
-                                                </a>
-                                            ` : ''}
-                                            <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
+                            <h3 class="text-sm font-bold text-gray-800 mb-1">${project.title}</h3>
+                            <p class="text-gray-600 text-xs mb-2 flex-grow line-clamp-2">${getShortDescription(project.description)}</p>
+                            
+                            <div class="flex items-center justify-between">
+                                <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-medium text-xs">
+                                    Ver →
+                                </button>
+                                <div class="flex items-center gap-1">
+                                    ${project.link ? `
+                                        <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-2 py-1 rounded-full hover:shadow-lg transition-all duration-300 text-xs">
+                                            Abrir
+                                        </a>
+                                    ` : ''}
+                                    <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-1 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
-            } else {
-                // Layout de Grade (padrão)
-                card.className = 'gradient-border transform hover:scale-105 transition-all duration-300 hover:shadow-xl';
-                
-                card.innerHTML = `
-                    <div class="gradient-border-content p-6 h-full flex flex-col">
-                        <div class="slide-container mb-4 h-48 bg-gray-100 rounded-lg overflow-hidden">
-                            ${project.images.map((img, index) => `
-                                <div class="slide ${index === 0 ? 'active' : ''} h-full">
-                                    <img src="${img}" alt="${project.title}" class="w-full h-full object-cover">
-                                </div>
-                            `).join('')}
-                            ${project.images.length > 1 ? `
-                                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                                    ${project.images.map((_, index) => `
-                                        <button onclick="changeSlide(${project.id}, ${index})" class="w-2 h-2 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"></button>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">${project.title}</h3>
-                        <p class="text-gray-600 mb-2 flex-grow">${project.description}</p>
-                        ${project.date ? `<p class="text-xs text-gray-500 mb-4">📅 ${formatDate(project.date)}</p>` : ''}
-                        
-                        <div class="flex flex-col gap-3">
-                            <!-- Layout para telas pequenas (mobile/tablet) -->
-                            <div class="flex flex-col md:hidden gap-3">
-                                <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-left">
-                                    Ver Detalhes →
-                                </button>
-                                <div class="flex items-center justify-end gap-2">
-                                    ${project.link ? `
-                                        <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 text-sm">
-                                            Ver Projeto
-                                        </a>
-                                    ` : ''}
-                                    <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    `;
+                } else {
+                    // Cards normais na página de projetos
+                    card.className = 'gradient-border transform hover:scale-105 transition-all duration-300 hover:shadow-xl';
+                    
+                    card.innerHTML = `
+                        <div class="gradient-border-content p-6 h-full flex flex-col">
+                            <div class="slide-container mb-4 h-48 bg-gray-100 rounded-lg overflow-hidden">
+                                ${project.images.map((img, index) => `
+                                    <div class="slide ${index === 0 ? 'active' : ''} h-full">
+                                        <img src="${img}" alt="${project.title}" class="w-full h-full object-cover">
+                                    </div>
+                                `).join('')}
+                                ${project.images.length > 1 ? `
+                                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                        ${project.images.map((_, index) => `
+                                            <button onclick="changeSlide(${project.id}, ${index})" class="w-2 h-2 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"></button>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">${project.title}</h3>
+                            <p class="text-gray-600 mb-2 flex-grow">${project.description}</p>
+                            ${project.date ? `<p class="text-xs text-gray-500 mb-4">📅 ${formatDate(project.date)}</p>` : ''}
+                            
+                            <div class="flex flex-col gap-3">
+                                <!-- Layout para telas pequenas (mobile/tablet) -->
+                                <div class="flex flex-col md:hidden gap-3">
+                                    <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-left">
+                                        Ver Detalhes →
+                                    </button>
+                                    <div class="flex items-center justify-end gap-2">
+                                        ${project.link ? `
+                                            <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 text-sm">
+                                                Ver Projeto
+                                            </a>
+                                        ` : ''}
+                                        <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
                                 </div>
@@ -968,25 +1043,25 @@
                             
                             <!-- Layout para telas médias e grandes (desktop) -->
                             <div class="hidden md:flex items-center justify-between">
-                                <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold">
+                                <button onclick="openModal(${project.id})" class="text-custom-purple hover:text-custom-blue font-semibold text-sm">
                                     Ver Detalhes →
                                 </button>
                                 <div class="flex items-center gap-2">
                                     ${project.link ? `
-                                        <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-300 whitespace-nowrap">
+                                        <a href="${project.link}" target="_blank" class="bg-gradient-to-r from-custom-purple to-custom-blue text-white px-3 py-1.5 rounded-full hover:shadow-lg transition-all duration-300 whitespace-nowrap text-xs">
                                             Ver Projeto
                                         </a>
                                     ` : ''}
-                                    <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-2 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button onclick="deleteProject(${project.id})" class="text-gray-400 hover:text-red-500 p-1.5 transition-all duration-300 flex-shrink-0" title="Excluir projeto">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
             
             // Inicializar slide atual
@@ -1038,6 +1113,60 @@
             modalContent.innerHTML = `
                 <div class="space-y-6">
                     <p class="text-gray-600 text-lg">${project.description}</p>
+                    
+                    <!-- Informações do Projeto -->
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <h4 class="text-lg font-semibold text-gray-800">Informações do Projeto</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${project.date ? `
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-custom-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div>
+                                        <span class="text-sm text-gray-500">Data de Criação:</span>
+                                        <p class="font-medium text-gray-800">${formatDate(project.date)}</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${project.link ? `
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-custom-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    <div>
+                                        <span class="text-sm text-gray-500">Link do Projeto:</span>
+                                        <p class="font-medium">
+                                            <a href="${project.link}" target="_blank" class="text-custom-blue hover:text-custom-purple transition-colors underline">
+                                                ${project.link.length > 40 ? project.link.substring(0, 40) + '...' : project.link}
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <span class="text-sm text-gray-500">Imagens:</span>
+                                    <p class="font-medium text-gray-800">${project.images.length} ${project.images.length === 1 ? 'imagem' : 'imagens'}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <span class="text-sm text-gray-500">Cadastrado em:</span>
+                                    <p class="font-medium text-gray-800">${project.createdAt ? new Date(project.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     ${project.images.length > 0 ? `
                         <div class="space-y-4">
@@ -1434,7 +1563,7 @@
                 <head>
                     <meta charset="UTF-8">
                     <style>
-                        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+                        table { border-collapse: collapse; width: 100%; font-family: 'Montserrat', sans-serif; }
                         th { background-color: #8e44ad; color: white; font-weight: bold; padding: 12px; border: 1px solid #ddd; text-align: center; }
                         td { padding: 10px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
                         tr:nth-child(even) { background-color: #f9f9f9; }
@@ -1590,7 +1719,7 @@
                     link: "https://exemplo-ecommerce.com",
                     date: "2024-01-15",
                     createdAt: new Date().toISOString(),
-                    images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjOGU0NGFkIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5FLWNvbW1lcmNlPC90ZXh0Pgo8L3N2Zz4K'],
+                    images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjOGU0NGFkIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9Ik1vbnRzZXJyYXQiPkUtY29tbWVyY2U8L3RleHQ+Cjwvc3ZnPgo='],
                     video: null,
                     videoFile: null
                 });
@@ -1603,7 +1732,7 @@
                     link: "https://exemplo-delivery.com",
                     date: "2024-02-20",
                     createdAt: new Date().toISOString(),
-                    images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZTkxZTYzIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5EZWxpdmVyeSBBcHA8L3RleHQ+Cjwvc3ZnPgo='],
+                    images: ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZTkxZTYzIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9Ik1vbnRzZXJyYXQiPkRlbGl2ZXJ5IEFwcDwvdGV4dD4KPHN2Zz4K'],
                     video: null,
                     videoFile: null
                 });
@@ -1612,5 +1741,5 @@
             renderProjects('projects-grid');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97606eae820436f4',t:'MTc1NjM0ODcwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97689049958f646f',t:'MTc1NjQzMzk2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
