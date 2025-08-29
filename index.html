@@ -1910,7 +1910,35 @@
                 });
                 
                 if (response.ok) {
-                    showConfigStatus('Conexão testada com sucesso!', 'success');
+                    const backups = await response.json();
+                    
+                    // Atualizar configuração temporariamente para sincronização
+                    const tempConfig = { ...supabaseConfig };
+                    supabaseConfig.url = url;
+                    supabaseConfig.key = key;
+                    
+                    // Verificar se há dados para sincronizar
+                    if (backups.length > 0) {
+                        const latestBackup = backups[0];
+                        const localLastSave = localStorage.getItem('portfolio_last_save');
+                        const localDate = localLastSave ? new Date(localLastSave) : new Date(0);
+                        const backupDate = new Date(latestBackup.backup_date);
+                        
+                        if (backupDate > localDate || latestBackup.projects_count > projects.length) {
+                            // Sincronizar automaticamente
+                            await syncFromRemoteBackup(latestBackup);
+                            showConfigStatus(`Conexão testada e projetos sincronizados automaticamente! ${latestBackup.projects_count} projetos atualizados.`, 'success');
+                        } else {
+                            showConfigStatus('Conexão testada com sucesso! Dados já estão sincronizados.', 'success');
+                        }
+                    } else {
+                        showConfigStatus('Conexão testada com sucesso! Nenhum backup encontrado no servidor.', 'success');
+                    }
+                    
+                    // Restaurar configuração original
+                    supabaseConfig.url = tempConfig.url;
+                    supabaseConfig.key = tempConfig.key;
+                    
                 } else if (response.status === 404) {
                     showConfigStatus('Tabela "projects_backup" não encontrada. Execute o SQL fornecido no Supabase.', 'warning');
                 } else {
@@ -1944,7 +1972,7 @@
         }
 
         // Formulário de configuração do Supabase
-        document.getElementById('supabase-config-form').addEventListener('submit', function(e) {
+        document.getElementById('supabase-config-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const url = document.getElementById('supabase-url').value.trim();
@@ -1962,11 +1990,20 @@
             localStorage.setItem('supabase_url', url);
             localStorage.setItem('supabase_key', key);
             
-            showConfigStatus('Configuração salva com sucesso!', 'success');
+            showConfigStatus('Configuração salva! Verificando sincronização...', 'info');
             updateConnectionStatus();
+            
+            // Sincronizar automaticamente após salvar
+            try {
+                await autoSyncOnConnect();
+                showConfigStatus('Configuração salva e dados sincronizados automaticamente!', 'success');
+            } catch (error) {
+                console.error('Erro na sincronização automática:', error);
+                showConfigStatus('Configuração salva com sucesso!', 'success');
+            }
         });
 
-        // Função de backup automático
+        // Função de backup automático com imagens e vídeos
         async function performAutoBackup(action = 'manual', projectTitle = '') {
             if (!supabaseConfig.url || !supabaseConfig.key || !autoBackupEnabled) {
                 return false;
@@ -1985,7 +2022,9 @@
             isBackingUp = true;
             
             try {
-                // Preparar dados para backup
+                console.log(`🔄 Iniciando backup completo: ${action} - ${projectTitle}`);
+                
+                // Preparar dados completos para backup (incluindo imagens e vídeos)
                 const backupData = {
                     user_id: 'portfolio_user_auto',
                     backup_date: new Date().toISOString(),
@@ -2003,13 +2042,31 @@
                         createdAt: project.createdAt,
                         updatedAt: project.updatedAt,
                         video: project.video || '',
+                        videoFile: project.videoFile || null, // Incluir arquivo de vídeo
                         priority: project.priority || 'normal',
                         category: project.category || 'geral',
                         tags: project.tags || [],
+                        images: project.images || [], // Incluir todas as imagens
                         images_count: project.images ? project.images.length : 0,
-                        has_video_file: project.videoFile ? true : false
+                        has_video_file: project.videoFile ? true : false,
+                        // Metadados adicionais
+                        backup_metadata: {
+                            total_images_size: calculateImagesSize(project.images),
+                            video_file_size: project.videoFile ? calculateBase64Size(project.videoFile) : 0,
+                            backup_timestamp: new Date().toISOString()
+                        }
                     }))
                 };
+                
+                // Calcular tamanho total do backup
+                const backupSize = calculateBackupSize(backupData);
+                console.log(`📊 Tamanho do backup: ${formatBytes(backupSize)}`);
+                
+                // Verificar se o backup não é muito grande (limite do Supabase)
+                if (backupSize > 50 * 1024 * 1024) { // 50MB
+                    console.warn('⚠️ Backup muito grande, comprimindo dados...');
+                    backupData.projects_data = await compressBackupData(backupData.projects_data);
+                }
                 
                 const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup`, {
                     method: 'POST',
@@ -2022,7 +2079,9 @@
                 });
                 
                 if (response.ok) {
-                    console.log(`✅ Backup automático realizado: ${action} - ${projectTitle}`);
+                    const result = await response.json();
+                    console.log(`✅ Backup completo realizado: ${action} - ${projectTitle}`);
+                    console.log(`📊 Dados salvos: ${projects.length} projetos, ${getTotalImagesCount()} imagens, ${getTotalVideosCount()} vídeos`);
                     updateBackupStatus('success', action);
                     
                     // Processar próximo item da fila
@@ -2042,6 +2101,111 @@
             } finally {
                 isBackingUp = false;
             }
+        }
+        
+        // Funções auxiliares para backup completo
+        function calculateImagesSize(images) {
+            if (!images || !Array.isArray(images)) return 0;
+            return images.reduce((total, img) => total + calculateBase64Size(img), 0);
+        }
+        
+        function calculateBase64Size(base64String) {
+            if (!base64String) return 0;
+            // Calcular tamanho aproximado do base64
+            const padding = (base64String.match(/=/g) || []).length;
+            return Math.floor((base64String.length * 3) / 4) - padding;
+        }
+        
+        function calculateBackupSize(backupData) {
+            return new Blob([JSON.stringify(backupData)]).size;
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function getTotalImagesCount() {
+            return projects.reduce((total, project) => total + (project.images ? project.images.length : 0), 0);
+        }
+        
+        function getTotalVideosCount() {
+            return projects.reduce((total, project) => total + (project.videoFile ? 1 : 0), 0);
+        }
+        
+        // Comprimir dados do backup se necessário
+        async function compressBackupData(projectsData) {
+            console.log('🗜️ Comprimindo dados do backup...');
+            
+            return projectsData.map(project => {
+                const compressedProject = { ...project };
+                
+                // Comprimir imagens se necessário
+                if (project.images && project.images.length > 0) {
+                    compressedProject.images = project.images.map(img => {
+                        if (img.length > 500000) { // Se imagem > 500KB
+                            console.log(`🗜️ Comprimindo imagem grande do projeto: ${project.title}`);
+                            return compressImage(img, 0.7); // Comprimir com qualidade 70%
+                        }
+                        return img;
+                    });
+                }
+                
+                // Comprimir vídeo se necessário
+                if (project.videoFile && project.videoFile.length > 10000000) { // Se vídeo > 10MB
+                    console.log(`🗜️ Vídeo muito grande no projeto: ${project.title} - salvando apenas metadados`);
+                    compressedProject.videoFile = null;
+                    compressedProject.video_metadata = {
+                        original_size: calculateBase64Size(project.videoFile),
+                        removed_reason: 'Arquivo muito grande para backup',
+                        backup_date: new Date().toISOString()
+                    };
+                }
+                
+                return compressedProject;
+            });
+        }
+        
+        // Função para comprimir imagem (simplificada)
+        function compressImage(base64Image, quality = 0.8) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    // Redimensionar se necessário
+                    const maxWidth = 1200;
+                    const maxHeight = 800;
+                    
+                    let { width, height } = img;
+                    
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Comprimir
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedBase64);
+                };
+                
+                img.onerror = function() {
+                    console.warn('Erro ao comprimir imagem, mantendo original');
+                    resolve(base64Image);
+                };
+                
+                img.src = base64Image;
+            });
         }
 
         async function performBackup() {
@@ -2285,7 +2449,7 @@ Esta ação não pode ser desfeita.
                     await performAutoBackup('pre_restore', `Backup antes de restaurar ${selectedBackup.projects_count} projetos`);
                 }
                 
-                // Restaurar projetos do backup
+                // Restaurar projetos do backup com imagens e vídeos completos
                 const restoredProjects = selectedBackup.projects_data.map(projectData => ({
                     id: projectData.id || Date.now() + Math.floor(Math.random() * 1000),
                     title: projectData.title || 'Projeto sem título',
@@ -2296,15 +2460,23 @@ Esta ação não pode ser desfeita.
                     status: projectData.status || 'planning',
                     createdAt: projectData.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString(), // Atualizar data de modificação
-                    images: projectData.images || [createDefaultImage()], // Usar imagem padrão se não houver
+                    images: projectData.images && projectData.images.length > 0 ? projectData.images : [createDefaultImage()], // Restaurar imagens completas
                     video: projectData.video || '',
-                    videoFile: null, // Arquivos de vídeo não são restaurados
+                    videoFile: projectData.videoFile || null, // Restaurar arquivos de vídeo
                     priority: projectData.priority || 'normal',
                     category: projectData.category || 'geral',
                     tags: projectData.tags || [],
                     // Marcar como restaurado
                     restoredFrom: selectedBackup.id,
-                    restoredAt: new Date().toISOString()
+                    restoredAt: new Date().toISOString(),
+                    // Metadados de restauração
+                    restore_metadata: {
+                        backup_date: selectedBackup.backup_date,
+                        backup_type: selectedBackup.backup_type,
+                        images_restored: projectData.images ? projectData.images.length : 0,
+                        video_restored: projectData.videoFile ? true : false,
+                        video_metadata: projectData.video_metadata || null
+                    }
                 }));
                 
                 // Substituir projetos atuais
@@ -2491,6 +2663,243 @@ Os projetos foram atualizados na interface!`);
             }
         }
 
+        // Função de sincronização automática inteligente
+        async function autoSyncProjects() {
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                alert('Configure o Supabase primeiro na aba "Configuração"!');
+                return;
+            }
+            
+            const syncBtn = document.getElementById('sync-btn');
+            const originalText = syncBtn.innerHTML;
+            
+            try {
+                syncBtn.disabled = true;
+                syncBtn.innerHTML = 'Sincronizando...';
+                
+                console.log('🔄 Iniciando sincronização automática...');
+                
+                // Buscar backup mais recente
+                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup?order=created_at.desc&limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
+                const backups = await response.json();
+                
+                if (backups.length === 0) {
+                    // Não há backups, fazer primeiro backup
+                    console.log('📤 Nenhum backup encontrado, criando primeiro backup...');
+                    const success = await performAutoBackup('sync_inicial', 'Primeiro backup automático');
+                    if (success) {
+                        showSyncNotification('Primeiro backup criado com sucesso!', 'success');
+                    } else {
+                        throw new Error('Falha ao criar primeiro backup');
+                    }
+                    return;
+                }
+                
+                const latestBackup = backups[0];
+                const backupDate = new Date(latestBackup.backup_date);
+                const localLastSave = localStorage.getItem('portfolio_last_save');
+                const localDate = localLastSave ? new Date(localLastSave) : new Date(0);
+                
+                console.log(`📊 Comparando datas:
+                - Backup remoto: ${backupDate.toLocaleString('pt-BR')} (${latestBackup.projects_count} projetos)
+                - Dados locais: ${localDate.toLocaleString('pt-BR')} (${projects.length} projetos)`);
+                
+                // Verificar qual é mais recente
+                if (backupDate > localDate || latestBackup.projects_count !== projects.length) {
+                    // Backup remoto é mais recente ou tem diferença na quantidade
+                    console.log('⬇️ Dados remotos mais recentes, sincronizando...');
+                    
+                    // Fazer backup de segurança dos dados locais
+                    if (projects.length > 0) {
+                        await performAutoBackup('pre_sync', `Backup antes de sincronizar ${latestBackup.projects_count} projetos`);
+                    }
+                    
+                    // Sincronizar com dados remotos
+                    await syncFromRemoteBackup(latestBackup);
+                    showSyncNotification(`Sincronizado! ${latestBackup.projects_count} projetos atualizados.`, 'success');
+                    
+                } else if (localDate > backupDate) {
+                    // Dados locais são mais recentes
+                    console.log('⬆️ Dados locais mais recentes, enviando backup...');
+                    const success = await performAutoBackup('sync_upload', 'Sincronização de dados locais');
+                    if (success) {
+                        showSyncNotification('Dados locais sincronizados com sucesso!', 'success');
+                    } else {
+                        throw new Error('Falha ao sincronizar dados locais');
+                    }
+                } else {
+                    // Dados estão sincronizados
+                    console.log('✅ Dados já estão sincronizados');
+                    showSyncNotification('Dados já estão sincronizados!', 'info');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro na sincronização:', error);
+                showSyncNotification('Erro na sincronização. Verifique sua conexão.', 'error');
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.innerHTML = originalText;
+            }
+        }
+        
+        // Função para sincronizar com backup remoto
+        async function syncFromRemoteBackup(backup) {
+            if (!backup.projects_data || !Array.isArray(backup.projects_data)) {
+                throw new Error('Dados do backup inválidos');
+            }
+            
+            console.log(`🔄 Sincronizando ${backup.projects_data.length} projetos do backup remoto...`);
+            
+            // Restaurar projetos com dados completos
+            const syncedProjects = backup.projects_data.map(projectData => ({
+                id: projectData.id || Date.now() + Math.floor(Math.random() * 1000),
+                title: projectData.title || 'Projeto sem título',
+                description: projectData.description || 'Sem descrição',
+                link: projectData.link || '',
+                date: projectData.date || new Date().toISOString().split('T')[0],
+                progress: projectData.progress || 0,
+                status: projectData.status || 'planning',
+                createdAt: projectData.createdAt || new Date().toISOString(),
+                updatedAt: projectData.updatedAt || new Date().toISOString(),
+                images: projectData.images && projectData.images.length > 0 ? projectData.images : [createDefaultImage()],
+                video: projectData.video || '',
+                videoFile: projectData.videoFile || null,
+                priority: projectData.priority || 'normal',
+                category: projectData.category || 'geral',
+                tags: projectData.tags || [],
+                // Metadados de sincronização
+                syncedFrom: backup.id,
+                syncedAt: new Date().toISOString(),
+                sync_metadata: {
+                    backup_date: backup.backup_date,
+                    backup_type: backup.backup_type,
+                    images_synced: projectData.images ? projectData.images.length : 0,
+                    video_synced: projectData.videoFile ? true : false
+                }
+            }));
+            
+            // Substituir projetos atuais
+            projects.length = 0;
+            projects.push(...syncedProjects);
+            
+            // Salvar no localStorage
+            const saveSuccess = saveToLocalStorage();
+            if (!saveSuccess) {
+                throw new Error('Falha ao salvar dados sincronizados');
+            }
+            
+            // Atualizar interface
+            renderProjects('projects-grid');
+            renderProjects('projects-only-grid');
+            updateLocalProjectsCount();
+            
+            console.log(`✅ Sincronização concluída: ${syncedProjects.length} projetos sincronizados`);
+        }
+        
+        // Função para mostrar notificação de sincronização
+        function showSyncNotification(message, type = 'info') {
+            // Criar elemento de notificação
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 max-w-sm`;
+            
+            // Definir cores baseadas no tipo
+            const colors = {
+                success: 'bg-green-500 text-white',
+                error: 'bg-red-500 text-white',
+                info: 'bg-blue-500 text-white',
+                warning: 'bg-yellow-500 text-black'
+            };
+            
+            notification.className += ` ${colors[type] || colors.info}`;
+            
+            // Definir ícone baseado no tipo
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-lg">${icons[type] || icons.info}</span>
+                    <div>
+                        <div class="font-semibold text-sm">Sincronização</div>
+                        <div class="text-xs opacity-90">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-lg opacity-70 hover:opacity-100">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto-remover após 5 segundos
+            setTimeout(() => {
+                notification.style.transform = 'translateX(full)';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+        
+        // Função para sincronização automática ao conectar
+        async function autoSyncOnConnect() {
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                return;
+            }
+            
+            console.log('🔄 Verificando sincronização automática...');
+            
+            try {
+                // Verificar se há dados no servidor
+                const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup?order=created_at.desc&limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const backups = await response.json();
+                    
+                    if (backups.length > 0) {
+                        const latestBackup = backups[0];
+                        const localLastSave = localStorage.getItem('portfolio_last_save');
+                        const localDate = localLastSave ? new Date(localLastSave) : new Date(0);
+                        const backupDate = new Date(latestBackup.backup_date);
+                        
+                        // Se há dados mais recentes no servidor, sincronizar automaticamente
+                        if (backupDate > localDate || latestBackup.projects_count > projects.length) {
+                            console.log('🔄 Dados mais recentes encontrados no servidor, sincronizando automaticamente...');
+                            await syncFromRemoteBackup(latestBackup);
+                            showSyncNotification(`Auto-sincronizado! ${latestBackup.projects_count} projetos atualizados.`, 'success');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('ℹ️ Sincronização automática não disponível:', error.message);
+            }
+        }
+        
         // Fechar modal de configuração ao clicar fora
         document.getElementById('supabase-config-modal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -2765,7 +3174,7 @@ Os projetos foram atualizados na interface!`);
         }
 
         // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // Definir data padrão como hoje
             const today = new Date().toISOString().split('T')[0];
             const dateInputs = document.querySelectorAll('input[type="date"]');
@@ -2806,7 +3215,19 @@ Os projetos foram atualizados na interface!`);
             // Renderizar projetos iniciais
             renderProjects('projects-grid');
             renderProjects('projects-only-grid');
+            
+            // Sincronização automática em segundo plano (se configurado)
+            if (supabaseConfig.url && supabaseConfig.key) {
+                console.log('🔄 Iniciando sincronização automática em segundo plano...');
+                setTimeout(async () => {
+                    try {
+                        await autoSyncOnConnect();
+                    } catch (error) {
+                        console.log('ℹ️ Sincronização automática em segundo plano não disponível:', error.message);
+                    }
+                }, 2000); // Aguardar 2 segundos para não interferir no carregamento
+            }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f4124b1a71e65',t:'MTc1NjUwNDEyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f5172c6e10106',t:'MTc1NjUwNDc5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
