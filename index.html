@@ -1179,31 +1179,84 @@
                     return;
                 }
                 
-                Array.from(images).forEach((file, index) => {
+                // Verificar espaço disponível antes de processar
+                const availableSpace = getAvailableLocalStorageSpace();
+                console.log(`💾 Espaço disponível no localStorage: ${formatBytes(availableSpace)}`);
+                
+                // Limitar número de imagens baseado no espaço disponível
+                const maxImages = availableSpace < 5 * 1024 * 1024 ? 2 : availableSpace < 10 * 1024 * 1024 ? 3 : 5;
+                const imagesToProcess = Array.from(images).slice(0, maxImages);
+                
+                if (imagesToProcess.length < images.length) {
+                    console.warn(`⚠️ Limitando a ${maxImages} imagens devido ao espaço disponível`);
+                }
+                
+                imagesToProcess.forEach((file, index) => {
                     if (!file || !file.type.startsWith('image/')) {
                         console.warn(`⚠️ Arquivo ${index + 1} não é uma imagem válida`);
                         processedCount++;
-                        if (processedCount === totalImages) {
+                        if (processedCount === imagesToProcess.length) {
                             finalizeImageProcessing();
                         }
                         return;
                     }
                     
+                    // Verificar tamanho do arquivo
+                    const fileSizeMB = file.size / (1024 * 1024);
+                    console.log(`📊 Processando imagem ${index + 1}: ${file.name} (${fileSizeMB.toFixed(2)}MB)`);
+                    
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         try {
-                            newImages.push(e.target.result);
-                            processedCount++;
+                            let imageData = e.target.result;
                             
-                            console.log(`✅ Imagem ${processedCount}/${totalImages} processada`);
+                            // Compressão agressiva baseada no espaço disponível
+                            let quality = 0.4; // Qualidade padrão baixa para economizar espaço
                             
-                            if (processedCount === totalImages) {
-                                finalizeImageProcessing();
+                            if (availableSpace < 2 * 1024 * 1024) { // Menos de 2MB
+                                quality = 0.2; // Compressão máxima
+                            } else if (availableSpace < 5 * 1024 * 1024) { // Menos de 5MB
+                                quality = 0.3;
+                            } else if (fileSizeMB > 1) { // Arquivo grande
+                                quality = 0.4;
+                            } else {
+                                quality = 0.6; // Arquivo pequeno, menos compressão
                             }
+                            
+                            console.log(`🗜️ Comprimindo imagem com qualidade ${quality * 100}%`);
+                            
+                            compressImageData(imageData, quality).then(compressedImage => {
+                                // Verificar se a imagem comprimida ainda é muito grande
+                                const compressedSize = calculateBase64Size(compressedImage);
+                                
+                                if (compressedSize > 500 * 1024) { // Se ainda > 500KB
+                                    console.log('🗜️ Imagem ainda grande, comprimindo mais...');
+                                    return compressImageData(compressedImage, 0.2);
+                                }
+                                
+                                return compressedImage;
+                            }).then(finalImage => {
+                                newImages.push(finalImage);
+                                processedCount++;
+                                
+                                const finalSize = calculateBase64Size(finalImage);
+                                console.log(`✅ Imagem ${processedCount}/${imagesToProcess.length} processada: ${formatBytes(finalSize)}`);
+                                
+                                if (processedCount === imagesToProcess.length) {
+                                    finalizeImageProcessing();
+                                }
+                            }).catch(error => {
+                                console.error('❌ Erro na compressão, pulando imagem:', error);
+                                processedCount++;
+                                if (processedCount === imagesToProcess.length) {
+                                    finalizeImageProcessing();
+                                }
+                            });
+                            
                         } catch (error) {
                             console.error('❌ Erro ao processar resultado da imagem:', error);
                             processedCount++;
-                            if (processedCount === totalImages) {
+                            if (processedCount === imagesToProcess.length) {
                                 finalizeImageProcessing();
                             }
                         }
@@ -1211,7 +1264,7 @@
                     reader.onerror = function(error) {
                         console.error('❌ Erro ao ler arquivo de imagem:', error);
                         processedCount++;
-                        if (processedCount === totalImages) {
+                        if (processedCount === imagesToProcess.length) {
                             finalizeImageProcessing();
                         }
                     };
@@ -1224,10 +1277,15 @@
                     if (isNewProject) {
                         project.images = newImages.length > 0 ? newImages : [createDefaultImage()];
                     } else {
-                        // Para edição, adicionar às imagens existentes
+                        // Para edição, substituir imagens existentes se houver novas
                         if (newImages.length > 0) {
-                            project.images = project.images.concat(newImages);
+                            project.images = newImages; // Substituir ao invés de concatenar
                         }
+                    }
+                    
+                    // Mostrar aviso se imagens foram limitadas
+                    if (imagesToProcess.length < images.length) {
+                        showImageLimitWarning(images.length, imagesToProcess.length);
                     }
                     
                     finalizeProjectSave(project, videoFile, isModal, isNewProject);
@@ -1668,6 +1726,34 @@
                                     <p class="font-medium text-gray-800">${project.images.length} ${project.images.length === 1 ? 'imagem' : 'imagens'}</p>
                                 </div>
                             </div>
+                            
+                            ${project.video ? `
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div>
+                                        <span class="text-sm text-gray-500">Vídeo:</span>
+                                        <p class="font-medium">
+                                            <a href="${project.video}" target="_blank" class="text-red-500 hover:text-red-700 transition-colors underline text-sm">
+                                                ${project.video.includes('youtube.com') || project.video.includes('youtu.be') ? '📺 YouTube' : 
+                                                  project.video.includes('vimeo.com') ? '🎬 Vimeo' : 
+                                                  '🎥 Vídeo Externo'}
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            ` : project.videoFile ? `
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div>
+                                        <span class="text-sm text-gray-500">Vídeo:</span>
+                                        <p class="font-medium text-purple-600">📁 Arquivo Local</p>
+                                    </div>
+                                </div>
+                            ` : ''}
                             
                             <div class="flex items-center space-x-2">
                                 <svg class="w-5 h-5 text-custom-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2169,7 +2255,7 @@
             });
         }
         
-        // Função para comprimir imagem (simplificada)
+        // Função para comprimir imagem (melhorada)
         function compressImage(base64Image, quality = 0.8) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
@@ -2206,6 +2292,129 @@
                 
                 img.src = base64Image;
             });
+        }
+
+        // Função melhorada para comprimir dados de imagem
+        function compressImageData(base64Image, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        try {
+                            // Calcular dimensões otimizadas baseadas na qualidade
+                            let { width, height } = img;
+                            
+                            // Redimensionamento mais agressivo para economizar espaço
+                            let maxWidth, maxHeight;
+                            
+                            if (quality <= 0.2) {
+                                maxWidth = 400;
+                                maxHeight = 300;
+                            } else if (quality <= 0.4) {
+                                maxWidth = 600;
+                                maxHeight = 450;
+                            } else if (quality <= 0.6) {
+                                maxWidth = 800;
+                                maxHeight = 600;
+                            } else {
+                                maxWidth = 1000;
+                                maxHeight = 750;
+                            }
+                            
+                            // Aplicar redimensionamento se necessário
+                            if (width > maxWidth || height > maxHeight) {
+                                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                                width = Math.floor(width * ratio);
+                                height = Math.floor(height * ratio);
+                            }
+                            
+                            // Garantir dimensões mínimas
+                            width = Math.max(width, 200);
+                            height = Math.max(height, 150);
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Configurar contexto para melhor compressão
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = quality > 0.5 ? 'high' : 'medium';
+                            
+                            // Desenhar imagem redimensionada
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Comprimir com qualidade especificada
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                            
+                            // Verificar se a compressão foi efetiva
+                            const originalSizeBytes = calculateBase64Size(base64Image);
+                            const compressedSizeBytes = calculateBase64Size(compressedBase64);
+                            const compressionRatio = ((originalSizeBytes - compressedSizeBytes) / originalSizeBytes * 100).toFixed(1);
+                            
+                            console.log(`🗜️ Compressão: ${formatBytes(originalSizeBytes)} → ${formatBytes(compressedSizeBytes)} (${compressionRatio}% redução) - ${width}x${height}px`);
+                            
+                            // Se ainda estiver muito grande, tentar compressão adicional
+                            if (compressedSizeBytes > 300 * 1024 && quality > 0.1) { // Se > 300KB
+                                console.log('🗜️ Imagem ainda grande, aplicando compressão adicional...');
+                                const extraCompressed = canvas.toDataURL('image/jpeg', Math.max(0.1, quality * 0.5));
+                                resolve(extraCompressed);
+                            } else {
+                                resolve(compressedBase64);
+                            }
+                            
+                        } catch (error) {
+                            console.error('Erro durante compressão:', error);
+                            reject(error);
+                        }
+                    };
+                    
+                    img.onerror = function(error) {
+                        console.error('Erro ao carregar imagem para compressão:', error);
+                        reject(error);
+                    };
+                    
+                    img.src = base64Image;
+                } catch (error) {
+                    console.error('Erro ao inicializar compressão:', error);
+                    reject(error);
+                }
+            });
+        }
+
+        // Função para verificar espaço disponível no localStorage
+        function getAvailableLocalStorageSpace() {
+            try {
+                // Calcular espaço usado atualmente
+                let usedSpace = 0;
+                for (let key in localStorage) {
+                    if (localStorage.hasOwnProperty(key)) {
+                        usedSpace += (localStorage[key] || '').length;
+                    }
+                }
+                
+                // Estimar limite do localStorage (geralmente 5-10MB)
+                const estimatedLimit = 5 * 1024 * 1024; // 5MB conservador
+                const availableSpace = Math.max(0, estimatedLimit - usedSpace);
+                
+                console.log(`💾 Espaço localStorage: ${formatBytes(usedSpace)} usado / ${formatBytes(estimatedLimit)} total = ${formatBytes(availableSpace)} disponível`);
+                
+                return availableSpace;
+            } catch (error) {
+                console.warn('Não foi possível calcular espaço disponível:', error);
+                return 500 * 1024; // Retornar 500KB como padrão conservador
+            }
+        }
+
+        // Função para verificar se há espaço suficiente
+        function checkStorageSpace(dataSize) {
+            const availableSpace = getAvailableLocalStorageSpace();
+            const requiredSpace = dataSize * 1.2; // 20% de margem de segurança
+            
+            console.log(`💾 Verificação de espaço: ${formatBytes(requiredSpace)} necessário, ${formatBytes(availableSpace)} disponível`);
+            
+            return availableSpace >= requiredSpace;
         }
 
         async function performBackup() {
@@ -3039,19 +3248,280 @@ Os projetos foram atualizados na interface!`);
 
         // ==================== LOCALSTORAGE FUNCTIONS ====================
         
-        // Salvar projetos no localStorage
+        // Salvar projetos no localStorage com verificação de espaço
         function saveToLocalStorage() {
             try {
-                const dataToSave = JSON.stringify(projects);
-                localStorage.setItem('portfolio_projects', dataToSave);
-                localStorage.setItem('portfolio_last_save', new Date().toISOString());
-                console.log(`Dados salvos no localStorage: ${projects.length} projetos`);
-                return true;
+                // Primeiro, tentar otimizar os dados antes de salvar
+                const optimizedProjects = projects.map(project => {
+                    const optimizedProject = { ...project };
+                    
+                    // Otimizar imagens se necessário
+                    if (project.images && project.images.length > 0) {
+                        // Limitar a 2 imagens por projeto para economizar espaço
+                        optimizedProject.images = project.images.slice(0, 2);
+                        
+                        if (project.images.length > 2) {
+                            optimizedProject.images_limited = true;
+                            optimizedProject.original_images_count = project.images.length;
+                        }
+                    }
+                    
+                    // Remover vídeos grandes automaticamente
+                    if (project.videoFile) {
+                        const videoSize = calculateBase64Size(project.videoFile);
+                        if (videoSize > 1 * 1024 * 1024) { // Se vídeo > 1MB
+                            console.log(`🗜️ Removendo vídeo grande do projeto: ${project.title}`);
+                            optimizedProject.videoFile = null;
+                            optimizedProject.video_removed = true;
+                            optimizedProject.video_removal_reason = 'Arquivo muito grande para localStorage';
+                        }
+                    }
+                    
+                    return optimizedProject;
+                });
+                
+                const dataToSave = JSON.stringify(optimizedProjects);
+                const dataSize = new Blob([dataToSave]).size;
+                
+                console.log(`💾 Tentando salvar ${formatBytes(dataSize)} de dados (${projects.length} projetos)`);
+                
+                // Verificar se ainda é muito grande
+                const availableSpace = getAvailableLocalStorageSpace();
+                
+                if (dataSize > availableSpace * 0.8) { // Usar apenas 80% do espaço disponível
+                    console.warn('⚠️ Dados ainda muito grandes, aplicando otimização adicional...');
+                    
+                    // Otimização mais agressiva
+                    const ultraOptimized = optimizedProjects.map(project => {
+                        const ultraProject = { ...project };
+                        
+                        // Manter apenas 1 imagem por projeto
+                        if (project.images && project.images.length > 0) {
+                            ultraProject.images = [project.images[0]]; // Apenas primeira imagem
+                            ultraProject.images_ultra_limited = true;
+                            ultraProject.original_images_count = project.images.length;
+                        }
+                        
+                        // Remover todos os vídeos
+                        if (project.videoFile) {
+                            ultraProject.videoFile = null;
+                            ultraProject.video_removed = true;
+                            ultraProject.video_removal_reason = 'Espaço insuficiente';
+                        }
+                        
+                        // Truncar descrições muito longas
+                        if (project.description && project.description.length > 200) {
+                            ultraProject.description = project.description.substring(0, 200) + '...';
+                            ultraProject.description_truncated = true;
+                        }
+                        
+                        return ultraProject;
+                    });
+                    
+                    const ultraData = JSON.stringify(ultraOptimized);
+                    const ultraSize = new Blob([ultraData]).size;
+                    
+                    console.log(`🗜️ Ultra otimização: ${formatBytes(dataSize)} → ${formatBytes(ultraSize)}`);
+                    
+                    if (ultraSize <= availableSpace * 0.8) {
+                        localStorage.setItem('portfolio_projects', ultraData);
+                        localStorage.setItem('portfolio_last_save', new Date().toISOString());
+                        console.log(`✅ Dados ultra-otimizados salvos: ${projects.length} projetos`);
+                        
+                        // Atualizar array local com dados otimizados
+                        projects.length = 0;
+                        projects.push(...ultraOptimized);
+                        
+                        showUltraOptimizationWarning();
+                        return true;
+                    } else {
+                        throw new Error('Espaço insuficiente mesmo com ultra-otimização');
+                    }
+                } else {
+                    // Salvar dados otimizados
+                    localStorage.setItem('portfolio_projects', dataToSave);
+                    localStorage.setItem('portfolio_last_save', new Date().toISOString());
+                    console.log(`✅ Dados salvos no localStorage: ${projects.length} projetos`);
+                    
+                    // Atualizar array local com dados otimizados se houve mudanças
+                    const hasOptimizations = optimizedProjects.some(p => 
+                        p.images_limited || p.video_removed
+                    );
+                    
+                    if (hasOptimizations) {
+                        projects.length = 0;
+                        projects.push(...optimizedProjects);
+                        showOptimizationWarning();
+                    }
+                    
+                    return true;
+                }
             } catch (error) {
-                console.error('Erro ao salvar no localStorage:', error);
-                alert('Erro ao salvar dados localmente. Verifique o espaço disponível.');
+                console.error('❌ Erro ao salvar no localStorage:', error);
+                
+                // Mostrar erro mais específico
+                if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
+                    showStorageQuotaError();
+                } else {
+                    alert(`❌ Erro ao salvar dados localmente: ${error.message}\n\nTente reduzir o tamanho das imagens ou remover alguns projetos.`);
+                }
                 return false;
             }
+        }
+
+        // Função para mostrar aviso de limite de imagens
+        function showImageLimitWarning(originalCount, processedCount) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg bg-orange-500 text-white max-w-sm transform translate-x-full transition-transform duration-300';
+            
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="text-lg">📸</span>
+                    <div>
+                        <div class="font-semibold text-sm">Imagens Limitadas</div>
+                        <div class="text-xs mt-1">
+                            Apenas ${processedCount} de ${originalCount} imagens foram salvas devido ao espaço limitado. 
+                            Configure o backup online para salvar todas as imagens.
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-lg opacity-70 hover:opacity-100">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(full)';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 8000);
+        }
+
+        // Função para mostrar aviso de ultra-otimização
+        function showUltraOptimizationWarning() {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg bg-red-500 text-white max-w-sm transform translate-x-full transition-transform duration-300';
+            
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="text-lg">🚨</span>
+                    <div>
+                        <div class="font-semibold text-sm">Ultra-Otimização Aplicada</div>
+                        <div class="text-xs mt-1">
+                            Dados drasticamente reduzidos: apenas 1 imagem por projeto, vídeos removidos, descrições encurtadas. 
+                            <strong>Configure o backup online urgentemente!</strong>
+                        </div>
+                        <button onclick="openSupabaseConfig(); this.parentElement.parentElement.parentElement.remove();" class="mt-2 bg-white text-red-500 px-2 py-1 rounded text-xs font-semibold hover:bg-gray-100">
+                            Configurar Backup
+                        </button>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-lg opacity-70 hover:opacity-100">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Não remover automaticamente - usuário deve ver
+        }
+
+        // Função para mostrar aviso de otimização
+        function showOptimizationWarning() {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg bg-yellow-500 text-black max-w-sm transform translate-x-full transition-transform duration-300';
+            
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="text-lg">⚠️</span>
+                    <div>
+                        <div class="font-semibold text-sm">Dados Otimizados</div>
+                        <div class="text-xs mt-1">
+                            Algumas imagens foram comprimidas ou removidas para economizar espaço. 
+                            Considere usar o backup online para preservar todos os dados.
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-lg opacity-70 hover:opacity-100">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(full)';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 8000);
+        }
+
+        // Função para mostrar erro de quota de armazenamento
+        function showStorageQuotaError() {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg max-w-md m-4 w-full">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Espaço de Armazenamento Esgotado</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6 space-y-3">
+                            <p class="text-gray-600">
+                                O navegador não tem espaço suficiente para salvar os dados. Isso pode acontecer quando:
+                            </p>
+                            <ul class="text-sm text-gray-600 space-y-1 ml-4">
+                                <li>• As imagens são muito grandes</li>
+                                <li>• Há muitos projetos salvos</li>
+                                <li>• O localStorage está cheio</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">💡 Soluções:</h4>
+                            <ul class="text-sm text-blue-700 space-y-1">
+                                <li>1. Use imagens menores (máx. 2MB cada)</li>
+                                <li>2. Configure o backup online (Supabase)</li>
+                                <li>3. Exporte seus dados antes de limpar</li>
+                                <li>4. Remova projetos antigos</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="openSupabaseConfig(); this.parentElement.parentElement.parentElement.parentElement.remove();" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                Configurar Backup Online
+                            </button>
+                            <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
         }
         
         // Carregar projetos do localStorage
@@ -3229,5 +3699,5 @@ Os projetos foram atualizados na interface!`);
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f5172c6e10106',t:'MTc1NjUwNDc5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f85f5c171ae51',t:'MTc1NjUwNjk0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
