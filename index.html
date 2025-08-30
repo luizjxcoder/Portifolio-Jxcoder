@@ -1167,139 +1167,112 @@
 
         function processProjectImages(project, images, videoFile, isModal, isNewProject) {
             try {
-                let processedCount = 0;
-                const totalImages = images.length;
-                const newImages = [];
-                
-                console.log('🔄 Iniciando processamento de', totalImages, 'imagens');
-                
-                if (totalImages === 0) {
-                    console.log('📝 Nenhuma imagem para processar');
+                if (!images || images.length === 0) {
+                    if (isNewProject) {
+                        project.images = [createDefaultImage()];
+                    }
                     finalizeProjectSave(project, videoFile, isModal, isNewProject);
                     return;
                 }
                 
-                // Verificar espaço disponível antes de processar
-                const availableSpace = getAvailableLocalStorageSpace();
-                console.log(`💾 Espaço disponível no localStorage: ${formatBytes(availableSpace)}`);
+                // Processar apenas 1 imagem para performance
+                const file = images[0];
                 
-                // Limitar número de imagens baseado no espaço disponível
-                const maxImages = availableSpace < 5 * 1024 * 1024 ? 2 : availableSpace < 10 * 1024 * 1024 ? 3 : 5;
-                const imagesToProcess = Array.from(images).slice(0, maxImages);
-                
-                if (imagesToProcess.length < images.length) {
-                    console.warn(`⚠️ Limitando a ${maxImages} imagens devido ao espaço disponível`);
-                }
-                
-                imagesToProcess.forEach((file, index) => {
-                    if (!file || !file.type.startsWith('image/')) {
-                        console.warn(`⚠️ Arquivo ${index + 1} não é uma imagem válida`);
-                        processedCount++;
-                        if (processedCount === imagesToProcess.length) {
-                            finalizeImageProcessing();
-                        }
-                        return;
-                    }
-                    
-                    // Verificar tamanho do arquivo
-                    const fileSizeMB = file.size / (1024 * 1024);
-                    console.log(`📊 Processando imagem ${index + 1}: ${file.name} (${fileSizeMB.toFixed(2)}MB)`);
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            let imageData = e.target.result;
-                            
-                            // Compressão agressiva baseada no espaço disponível
-                            let quality = 0.4; // Qualidade padrão baixa para economizar espaço
-                            
-                            if (availableSpace < 2 * 1024 * 1024) { // Menos de 2MB
-                                quality = 0.2; // Compressão máxima
-                            } else if (availableSpace < 5 * 1024 * 1024) { // Menos de 5MB
-                                quality = 0.3;
-                            } else if (fileSizeMB > 1) { // Arquivo grande
-                                quality = 0.4;
-                            } else {
-                                quality = 0.6; // Arquivo pequeno, menos compressão
-                            }
-                            
-                            console.log(`🗜️ Comprimindo imagem com qualidade ${quality * 100}%`);
-                            
-                            compressImageData(imageData, quality).then(compressedImage => {
-                                // Verificar se a imagem comprimida ainda é muito grande
-                                const compressedSize = calculateBase64Size(compressedImage);
-                                
-                                if (compressedSize > 500 * 1024) { // Se ainda > 500KB
-                                    console.log('🗜️ Imagem ainda grande, comprimindo mais...');
-                                    return compressImageData(compressedImage, 0.2);
-                                }
-                                
-                                return compressedImage;
-                            }).then(finalImage => {
-                                newImages.push(finalImage);
-                                processedCount++;
-                                
-                                const finalSize = calculateBase64Size(finalImage);
-                                console.log(`✅ Imagem ${processedCount}/${imagesToProcess.length} processada: ${formatBytes(finalSize)}`);
-                                
-                                if (processedCount === imagesToProcess.length) {
-                                    finalizeImageProcessing();
-                                }
-                            }).catch(error => {
-                                console.error('❌ Erro na compressão, pulando imagem:', error);
-                                processedCount++;
-                                if (processedCount === imagesToProcess.length) {
-                                    finalizeImageProcessing();
-                                }
-                            });
-                            
-                        } catch (error) {
-                            console.error('❌ Erro ao processar resultado da imagem:', error);
-                            processedCount++;
-                            if (processedCount === imagesToProcess.length) {
-                                finalizeImageProcessing();
-                            }
-                        }
-                    };
-                    reader.onerror = function(error) {
-                        console.error('❌ Erro ao ler arquivo de imagem:', error);
-                        processedCount++;
-                        if (processedCount === imagesToProcess.length) {
-                            finalizeImageProcessing();
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                });
-                
-                function finalizeImageProcessing() {
-                    console.log('🎉 Processamento de imagens finalizado!');
-                    
+                if (!file || !file.type.startsWith('image/')) {
                     if (isNewProject) {
-                        project.images = newImages.length > 0 ? newImages : [createDefaultImage()];
-                    } else {
-                        // Para edição, substituir imagens existentes se houver novas
-                        if (newImages.length > 0) {
-                            project.images = newImages; // Substituir ao invés de concatenar
-                        }
+                        project.images = [createDefaultImage()];
                     }
-                    
-                    // Mostrar aviso se imagens foram limitadas
-                    if (imagesToProcess.length < images.length) {
-                        showImageLimitWarning(images.length, imagesToProcess.length);
-                    }
-                    
                     finalizeProjectSave(project, videoFile, isModal, isNewProject);
+                    return;
                 }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        // Compressão simples e rápida
+                        compressImageSimple(e.target.result, 0.3, 400).then(compressed => {
+                            if (isNewProject) {
+                                project.images = [compressed];
+                            } else {
+                                project.images = [compressed];
+                            }
+                            finalizeProjectSave(project, videoFile, isModal, isNewProject);
+                        }).catch(error => {
+                            console.error('Erro na compressão:', error);
+                            if (isNewProject) {
+                                project.images = [createDefaultImage()];
+                            }
+                            finalizeProjectSave(project, videoFile, isModal, isNewProject);
+                        });
+                    } catch (error) {
+                        console.error('Erro ao processar:', error);
+                        if (isNewProject) {
+                            project.images = [createDefaultImage()];
+                        }
+                        finalizeProjectSave(project, videoFile, isModal, isNewProject);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    if (isNewProject) {
+                        project.images = [createDefaultImage()];
+                    }
+                    finalizeProjectSave(project, videoFile, isModal, isNewProject);
+                };
+                
+                reader.readAsDataURL(file);
                 
             } catch (error) {
-                console.error('❌ Erro no processamento de imagens:', error);
-                // Em caso de erro, usar imagem padrão para novos projetos
-                if (isNewProject && (!project.images || project.images.length === 0)) {
+                console.error('Erro crítico:', error);
+                if (isNewProject) {
                     project.images = [createDefaultImage()];
                 }
                 finalizeProjectSave(project, videoFile, isModal, isNewProject);
             }
         }
+
+        // Função de compressão simples e rápida
+        function compressImageSimple(base64Image, quality = 0.3, maxDimension = 400) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        try {
+                            let { width, height } = img;
+                            
+                            // Redimensionamento simples
+                            if (width > maxDimension || height > maxDimension) {
+                                const ratio = Math.min(maxDimension / width, maxDimension / height);
+                                width = Math.floor(width * ratio);
+                                height = Math.floor(height * ratio);
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Desenhar e comprimir
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                            
+                            resolve(compressedBase64);
+                            
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    
+                    img.onerror = reject;
+                    img.src = base64Image;
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+
 
         function finalizeProjectSave(project, videoFile, isModal, isNewProject) {
             console.log('🏁 Finalizando salvamento do projeto...');
@@ -1917,8 +1890,8 @@
             key: localStorage.getItem('supabase_key') || ''
         };
 
-        // Sistema de Backup Automático
-        let autoBackupEnabled = localStorage.getItem('auto_backup_enabled') === 'true';
+        // Sistema de Backup Automático (desabilitado por padrão)
+        let autoBackupEnabled = false;
         let backupQueue = [];
         let isBackingUp = false;
 
@@ -2089,7 +2062,7 @@
             }
         });
 
-        // Função de backup automático com imagens e vídeos
+        // Função de backup simplificada
         async function performAutoBackup(action = 'manual', projectTitle = '') {
             if (!supabaseConfig.url || !supabaseConfig.key || !autoBackupEnabled) {
                 return false;
@@ -2099,60 +2072,15 @@
                 return false;
             }
             
-            // Evitar múltiplos backups simultâneos
-            if (isBackingUp) {
-                backupQueue.push({ action, projectTitle });
-                return false;
-            }
-            
-            isBackingUp = true;
-            
             try {
-                console.log(`🔄 Iniciando backup completo: ${action} - ${projectTitle}`);
-                
-                // Preparar dados completos para backup (incluindo imagens e vídeos)
                 const backupData = {
-                    user_id: 'portfolio_user_auto',
+                    user_id: 'portfolio_user',
                     backup_date: new Date().toISOString(),
                     backup_type: action,
                     last_project: projectTitle,
                     projects_count: projects.length,
-                    projects_data: projects.map(project => ({
-                        id: project.id,
-                        title: project.title,
-                        description: project.description,
-                        link: project.link || '',
-                        date: project.date,
-                        progress: project.progress || 0,
-                        status: project.status || 'planning',
-                        createdAt: project.createdAt,
-                        updatedAt: project.updatedAt,
-                        video: project.video || '',
-                        videoFile: project.videoFile || null, // Incluir arquivo de vídeo
-                        priority: project.priority || 'normal',
-                        category: project.category || 'geral',
-                        tags: project.tags || [],
-                        images: project.images || [], // Incluir todas as imagens
-                        images_count: project.images ? project.images.length : 0,
-                        has_video_file: project.videoFile ? true : false,
-                        // Metadados adicionais
-                        backup_metadata: {
-                            total_images_size: calculateImagesSize(project.images),
-                            video_file_size: project.videoFile ? calculateBase64Size(project.videoFile) : 0,
-                            backup_timestamp: new Date().toISOString()
-                        }
-                    }))
+                    projects_data: projects
                 };
-                
-                // Calcular tamanho total do backup
-                const backupSize = calculateBackupSize(backupData);
-                console.log(`📊 Tamanho do backup: ${formatBytes(backupSize)}`);
-                
-                // Verificar se o backup não é muito grande (limite do Supabase)
-                if (backupSize > 50 * 1024 * 1024) { // 50MB
-                    console.warn('⚠️ Backup muito grande, comprimindo dados...');
-                    backupData.projects_data = await compressBackupData(backupData.projects_data);
-                }
                 
                 const response = await fetch(`${supabaseConfig.url}/rest/v1/projects_backup`, {
                     method: 'POST',
@@ -2165,27 +2093,15 @@
                 });
                 
                 if (response.ok) {
-                    const result = await response.json();
-                    console.log(`✅ Backup completo realizado: ${action} - ${projectTitle}`);
-                    console.log(`📊 Dados salvos: ${projects.length} projetos, ${getTotalImagesCount()} imagens, ${getTotalVideosCount()} vídeos`);
                     updateBackupStatus('success', action);
-                    
-                    // Processar próximo item da fila
-                    if (backupQueue.length > 0) {
-                        const nextBackup = backupQueue.shift();
-                        setTimeout(() => performAutoBackup(nextBackup.action, nextBackup.projectTitle), 1000);
-                    }
-                    
                     return true;
                 } else {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                    throw new Error(`Erro ${response.status}`);
                 }
             } catch (error) {
-                console.error('❌ Erro no backup automático:', error);
+                console.error('Erro no backup:', error);
                 updateBackupStatus('error', action);
                 return false;
-            } finally {
-                isBackingUp = false;
             }
         }
         
@@ -2294,117 +2210,112 @@
             });
         }
 
-        // Função melhorada para comprimir dados de imagem
-        function compressImageData(base64Image, quality = 0.8) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const img = new Image();
-                    
-                    img.onload = function() {
-                        try {
-                            // Calcular dimensões otimizadas baseadas na qualidade
-                            let { width, height } = img;
-                            
-                            // Redimensionamento mais agressivo para economizar espaço
-                            let maxWidth, maxHeight;
-                            
-                            if (quality <= 0.2) {
-                                maxWidth = 400;
-                                maxHeight = 300;
-                            } else if (quality <= 0.4) {
-                                maxWidth = 600;
-                                maxHeight = 450;
-                            } else if (quality <= 0.6) {
-                                maxWidth = 800;
-                                maxHeight = 600;
-                            } else {
-                                maxWidth = 1000;
-                                maxHeight = 750;
-                            }
-                            
-                            // Aplicar redimensionamento se necessário
-                            if (width > maxWidth || height > maxHeight) {
-                                const ratio = Math.min(maxWidth / width, maxHeight / height);
-                                width = Math.floor(width * ratio);
-                                height = Math.floor(height * ratio);
-                            }
-                            
-                            // Garantir dimensões mínimas
-                            width = Math.max(width, 200);
-                            height = Math.max(height, 150);
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            
-                            // Configurar contexto para melhor compressão
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = quality > 0.5 ? 'high' : 'medium';
-                            
-                            // Desenhar imagem redimensionada
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            // Comprimir com qualidade especificada
-                            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-                            
-                            // Verificar se a compressão foi efetiva
-                            const originalSizeBytes = calculateBase64Size(base64Image);
-                            const compressedSizeBytes = calculateBase64Size(compressedBase64);
-                            const compressionRatio = ((originalSizeBytes - compressedSizeBytes) / originalSizeBytes * 100).toFixed(1);
-                            
-                            console.log(`🗜️ Compressão: ${formatBytes(originalSizeBytes)} → ${formatBytes(compressedSizeBytes)} (${compressionRatio}% redução) - ${width}x${height}px`);
-                            
-                            // Se ainda estiver muito grande, tentar compressão adicional
-                            if (compressedSizeBytes > 300 * 1024 && quality > 0.1) { // Se > 300KB
-                                console.log('🗜️ Imagem ainda grande, aplicando compressão adicional...');
-                                const extraCompressed = canvas.toDataURL('image/jpeg', Math.max(0.1, quality * 0.5));
-                                resolve(extraCompressed);
-                            } else {
-                                resolve(compressedBase64);
-                            }
-                            
-                        } catch (error) {
-                            console.error('Erro durante compressão:', error);
-                            reject(error);
-                        }
-                    };
-                    
-                    img.onerror = function(error) {
-                        console.error('Erro ao carregar imagem para compressão:', error);
-                        reject(error);
-                    };
-                    
-                    img.src = base64Image;
-                } catch (error) {
-                    console.error('Erro ao inicializar compressão:', error);
-                    reject(error);
-                }
-            });
-        }
 
-        // Função para verificar espaço disponível no localStorage
+
+        // Sistema otimizado de gerenciamento de espaço
         function getAvailableLocalStorageSpace() {
             try {
-                // Calcular espaço usado atualmente
+                // Estimativa rápida sem testes pesados
                 let usedSpace = 0;
-                for (let key in localStorage) {
-                    if (localStorage.hasOwnProperty(key)) {
-                        usedSpace += (localStorage[key] || '').length;
-                    }
+                const portfolioData = localStorage.getItem('portfolio_projects');
+                if (portfolioData) {
+                    usedSpace = portfolioData.length * 2; // UTF-16
                 }
                 
-                // Estimar limite do localStorage (geralmente 5-10MB)
-                const estimatedLimit = 5 * 1024 * 1024; // 5MB conservador
+                // Usar limite conservador padrão
+                const estimatedLimit = 5 * 1024 * 1024; // 5MB
                 const availableSpace = Math.max(0, estimatedLimit - usedSpace);
-                
-                console.log(`💾 Espaço localStorage: ${formatBytes(usedSpace)} usado / ${formatBytes(estimatedLimit)} total = ${formatBytes(availableSpace)} disponível`);
                 
                 return availableSpace;
             } catch (error) {
-                console.warn('Não foi possível calcular espaço disponível:', error);
-                return 500 * 1024; // Retornar 500KB como padrão conservador
+                return 1 * 1024 * 1024; // 1MB padrão
             }
+        }
+
+        // Função para limpar espaço automaticamente
+        function cleanupLocalStorage() {
+            try {
+                console.log('🧹 Iniciando limpeza automática do localStorage...');
+                
+                // Remover dados temporários e cache antigo
+                const keysToRemove = [];
+                for (let key in localStorage) {
+                    if (key.startsWith('temp_') || 
+                        key.startsWith('cache_') || 
+                        key.startsWith('old_') ||
+                        key.includes('backup_temp')) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log(`🗑️ Removido: ${key}`);
+                });
+                
+                console.log(`✅ Limpeza concluída: ${keysToRemove.length} itens removidos`);
+                return keysToRemove.length > 0;
+            } catch (error) {
+                console.error('Erro na limpeza:', error);
+                return false;
+            }
+        }
+
+        // Função para comprimir dados JSON
+        function compressProjectData(projects) {
+            return projects.map(project => {
+                const compressed = {
+                    i: project.id,
+                    t: project.title,
+                    d: project.description?.substring(0, 150) || '', // Limitar descrição
+                    l: project.link || '',
+                    dt: project.date,
+                    p: project.progress || 0,
+                    s: project.status || 'planning',
+                    c: project.createdAt,
+                    u: project.updatedAt,
+                    v: project.video || '',
+                    imgs: project.images?.slice(0, 1) || [], // Apenas 1 imagem
+                    pr: project.priority || 'normal',
+                    cat: project.category || 'geral'
+                };
+                
+                // Remover campos vazios
+                Object.keys(compressed).forEach(key => {
+                    if (!compressed[key] || 
+                        (Array.isArray(compressed[key]) && compressed[key].length === 0) ||
+                        compressed[key] === '' ||
+                        compressed[key] === 0) {
+                        delete compressed[key];
+                    }
+                });
+                
+                return compressed;
+            });
+        }
+
+        // Função para descomprimir dados
+        function decompressProjectData(compressedProjects) {
+            return compressedProjects.map(compressed => ({
+                id: compressed.i || Date.now() + Math.random(),
+                title: compressed.t || 'Projeto sem título',
+                description: compressed.d || 'Sem descrição',
+                link: compressed.l || '',
+                date: compressed.dt || new Date().toISOString().split('T')[0],
+                progress: compressed.p || 0,
+                status: compressed.s || 'planning',
+                createdAt: compressed.c || new Date().toISOString(),
+                updatedAt: compressed.u || new Date().toISOString(),
+                video: compressed.v || '',
+                videoFile: null, // Sempre null para economizar espaço
+                images: compressed.imgs && compressed.imgs.length > 0 ? compressed.imgs : [createDefaultImage()],
+                priority: compressed.pr || 'normal',
+                category: compressed.cat || 'geral',
+                tags: [],
+                // Marcar como comprimido
+                isCompressed: true,
+                compressionNote: 'Dados comprimidos para economizar espaço'
+            }));
         }
 
         // Função para verificar se há espaço suficiente
@@ -3248,124 +3159,51 @@ Os projetos foram atualizados na interface!`);
 
         // ==================== LOCALSTORAGE FUNCTIONS ====================
         
-        // Salvar projetos no localStorage com verificação de espaço
+        // Sistema simplificado de salvamento
         function saveToLocalStorage() {
             try {
-                // Primeiro, tentar otimizar os dados antes de salvar
-                const optimizedProjects = projects.map(project => {
-                    const optimizedProject = { ...project };
-                    
-                    // Otimizar imagens se necessário
-                    if (project.images && project.images.length > 0) {
-                        // Limitar a 2 imagens por projeto para economizar espaço
-                        optimizedProject.images = project.images.slice(0, 2);
-                        
-                        if (project.images.length > 2) {
-                            optimizedProject.images_limited = true;
-                            optimizedProject.original_images_count = project.images.length;
-                        }
-                    }
-                    
-                    // Remover vídeos grandes automaticamente
-                    if (project.videoFile) {
-                        const videoSize = calculateBase64Size(project.videoFile);
-                        if (videoSize > 1 * 1024 * 1024) { // Se vídeo > 1MB
-                            console.log(`🗜️ Removendo vídeo grande do projeto: ${project.title}`);
-                            optimizedProject.videoFile = null;
-                            optimizedProject.video_removed = true;
-                            optimizedProject.video_removal_reason = 'Arquivo muito grande para localStorage';
-                        }
-                    }
-                    
-                    return optimizedProject;
-                });
-                
-                const dataToSave = JSON.stringify(optimizedProjects);
-                const dataSize = new Blob([dataToSave]).size;
-                
-                console.log(`💾 Tentando salvar ${formatBytes(dataSize)} de dados (${projects.length} projetos)`);
-                
-                // Verificar se ainda é muito grande
-                const availableSpace = getAvailableLocalStorageSpace();
-                
-                if (dataSize > availableSpace * 0.8) { // Usar apenas 80% do espaço disponível
-                    console.warn('⚠️ Dados ainda muito grandes, aplicando otimização adicional...');
-                    
-                    // Otimização mais agressiva
-                    const ultraOptimized = optimizedProjects.map(project => {
-                        const ultraProject = { ...project };
-                        
-                        // Manter apenas 1 imagem por projeto
-                        if (project.images && project.images.length > 0) {
-                            ultraProject.images = [project.images[0]]; // Apenas primeira imagem
-                            ultraProject.images_ultra_limited = true;
-                            ultraProject.original_images_count = project.images.length;
-                        }
-                        
-                        // Remover todos os vídeos
-                        if (project.videoFile) {
-                            ultraProject.videoFile = null;
-                            ultraProject.video_removed = true;
-                            ultraProject.video_removal_reason = 'Espaço insuficiente';
-                        }
-                        
-                        // Truncar descrições muito longas
-                        if (project.description && project.description.length > 200) {
-                            ultraProject.description = project.description.substring(0, 200) + '...';
-                            ultraProject.description_truncated = true;
-                        }
-                        
-                        return ultraProject;
-                    });
-                    
-                    const ultraData = JSON.stringify(ultraOptimized);
-                    const ultraSize = new Blob([ultraData]).size;
-                    
-                    console.log(`🗜️ Ultra otimização: ${formatBytes(dataSize)} → ${formatBytes(ultraSize)}`);
-                    
-                    if (ultraSize <= availableSpace * 0.8) {
-                        localStorage.setItem('portfolio_projects', ultraData);
-                        localStorage.setItem('portfolio_last_save', new Date().toISOString());
-                        console.log(`✅ Dados ultra-otimizados salvos: ${projects.length} projetos`);
-                        
-                        // Atualizar array local com dados otimizados
-                        projects.length = 0;
-                        projects.push(...ultraOptimized);
-                        
-                        showUltraOptimizationWarning();
-                        return true;
-                    } else {
-                        throw new Error('Espaço insuficiente mesmo com ultra-otimização');
-                    }
-                } else {
-                    // Salvar dados otimizados
-                    localStorage.setItem('portfolio_projects', dataToSave);
-                    localStorage.setItem('portfolio_last_save', new Date().toISOString());
-                    console.log(`✅ Dados salvos no localStorage: ${projects.length} projetos`);
-                    
-                    // Atualizar array local com dados otimizados se houve mudanças
-                    const hasOptimizations = optimizedProjects.some(p => 
-                        p.images_limited || p.video_removed
-                    );
-                    
-                    if (hasOptimizations) {
-                        projects.length = 0;
-                        projects.push(...optimizedProjects);
-                        showOptimizationWarning();
-                    }
-                    
-                    return true;
-                }
+                // Tentar salvar dados normais
+                const data = JSON.stringify(projects);
+                localStorage.setItem('portfolio_projects', data);
+                localStorage.setItem('portfolio_last_save', new Date().toISOString());
+                return true;
             } catch (error) {
-                console.error('❌ Erro ao salvar no localStorage:', error);
-                
-                // Mostrar erro mais específico
-                if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
-                    showStorageQuotaError();
-                } else {
-                    alert(`❌ Erro ao salvar dados localmente: ${error.message}\n\nTente reduzir o tamanho das imagens ou remover alguns projetos.`);
+                // Se falhar, tentar com dados comprimidos
+                try {
+                    const compressed = projects.map(project => ({
+                        id: project.id,
+                        title: project.title,
+                        description: project.description?.substring(0, 200) || '',
+                        link: project.link || '',
+                        date: project.date,
+                        progress: project.progress || 0,
+                        status: project.status || 'planning',
+                        createdAt: project.createdAt,
+                        images: project.images?.slice(0, 1) || [createDefaultImage()],
+                        video: project.video || ''
+                    }));
+                    
+                    const compressedData = JSON.stringify(compressed);
+                    localStorage.setItem('portfolio_projects', compressedData);
+                    localStorage.setItem('portfolio_last_save', new Date().toISOString());
+                    
+                    // Atualizar array local
+                    projects.length = 0;
+                    projects.push(...compressed.map(p => ({
+                        ...p,
+                        videoFile: null,
+                        priority: 'normal',
+                        category: 'geral',
+                        tags: [],
+                        updatedAt: new Date().toISOString()
+                    })));
+                    
+                    alert('⚠️ Dados salvos com compressão devido ao espaço limitado.');
+                    return true;
+                } catch (finalError) {
+                    alert('❌ Erro ao salvar dados. Espaço insuficiente.');
+                    return false;
                 }
-                return false;
             }
         }
 
@@ -3524,32 +3362,123 @@ Os projetos foram atualizados na interface!`);
             document.body.appendChild(modal);
         }
         
+        // Função para mostrar aviso de modo emergência
+        function showEmergencyModeWarning(totalProjects, savedProjects) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg bg-red-600 text-white max-w-sm transform translate-x-full transition-transform duration-300';
+            
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="text-lg">🚨</span>
+                    <div>
+                        <div class="font-semibold text-sm">Modo Emergência Ativado</div>
+                        <div class="text-xs mt-1">
+                            Espaço crítico! Apenas ${savedProjects} de ${totalProjects} projetos foram salvos. 
+                            Todas as imagens foram removidas. 
+                            <strong>Configure o backup online IMEDIATAMENTE!</strong>
+                        </div>
+                        <button onclick="openSupabaseConfig(); this.parentElement.parentElement.parentElement.remove();" class="mt-2 bg-white text-red-600 px-2 py-1 rounded text-xs font-semibold hover:bg-gray-100">
+                            Configurar Backup AGORA
+                        </button>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-lg opacity-70 hover:opacity-100">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Não remover automaticamente - é crítico
+        }
+
         // Carregar projetos do localStorage
         function loadFromLocalStorage() {
             try {
                 const savedProjects = localStorage.getItem('portfolio_projects');
+                
                 if (savedProjects) {
                     const parsedProjects = JSON.parse(savedProjects);
+                    
                     if (Array.isArray(parsedProjects)) {
-                        projects.length = 0; // Limpar array atual
+                        projects.length = 0;
                         projects.push(...parsedProjects);
                         
-                        // Migrar projetos antigos para novo formato se necessário
+                        // Garantir campos obrigatórios
                         projects.forEach(project => {
-                            if (!project.status) project.status = 'active';
+                            if (!project.status) project.status = 'planning';
                             if (!project.priority) project.priority = 'normal';
                             if (!project.category) project.category = 'geral';
                             if (!project.tags) project.tags = [];
                             if (!project.updatedAt) project.updatedAt = project.createdAt || new Date().toISOString();
+                            if (!project.images || project.images.length === 0) {
+                                project.images = [createDefaultImage()];
+                            }
                         });
-                        
-                        console.log(`${projects.length} projetos carregados do localStorage`);
                     }
                 }
             } catch (error) {
-                console.error('Erro ao carregar do localStorage:', error);
-                alert('Erro ao carregar dados salvos. Os dados podem estar corrompidos.');
+                console.error('Erro ao carregar:', error);
+                localStorage.removeItem('portfolio_projects');
+                projects.length = 0;
             }
+        }
+
+        // Função para mostrar aviso de compressão
+        function showCompressionNotice(level) {
+            const messages = {
+                'light': {
+                    color: 'bg-yellow-500',
+                    icon: '⚠️',
+                    title: 'Dados Comprimidos',
+                    message: 'Alguns dados foram comprimidos para economizar espaço. Máximo 2 imagens por projeto.'
+                },
+                'heavy': {
+                    color: 'bg-orange-500',
+                    icon: '🗜️',
+                    title: 'Compressão Pesada',
+                    message: 'Dados altamente comprimidos. Apenas 1 imagem por projeto, descrições limitadas.'
+                },
+                'emergency': {
+                    color: 'bg-red-500',
+                    icon: '🚨',
+                    title: 'Modo Emergência',
+                    message: 'Dados em modo emergência. Máximo 10 projetos, sem imagens originais.'
+                }
+            };
+            
+            const config = messages[level] || messages.light;
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed bottom-4 right-4 z-50 p-3 rounded-lg shadow-lg ${config.color} text-white max-w-sm transform translate-x-full transition-transform duration-300`;
+            
+            notification.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="text-sm">${config.icon}</span>
+                    <div>
+                        <div class="font-semibold text-xs">${config.title}</div>
+                        <div class="text-xs mt-1">${config.message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-sm opacity-70 hover:opacity-100">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(full)';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
         }
         
         // Limpar localStorage
@@ -3699,5 +3628,5 @@ Os projetos foram atualizados na interface!`);
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'976f85f5c171ae51',t:'MTc1NjUwNjk0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97747f0314b609d9',t:'MTc1NjU1OTA4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
