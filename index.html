@@ -567,6 +567,59 @@
                     </button>
                 </div>
                 
+                <!-- Botões de Ação Principais -->
+                <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-200 rounded-lg">
+                    <div class="flex flex-col lg:flex-row gap-3">
+                        <button onclick="performBackup()" id="backup-btn" class="flex-1 bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                </svg>
+                                Fazer Backup Agora
+                            </div>
+                        </button>
+                        <button onclick="autoSyncProjects()" id="sync-btn" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Sincronizar
+                            </div>
+                        </button>
+                        <button onclick="restoreFromBackup()" id="restore-btn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                Restaurar
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- Backup Automático Toggle -->
+                    <div class="mt-4 p-3 bg-white border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-custom-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 text-sm">Backup Automático</h4>
+                                    <p class="text-xs text-gray-600">Faz backup após cada alteração nos projetos</p>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="auto-backup-toggle" class="sr-only peer" onchange="toggleAutoBackup()">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-custom-purple peer-checked:to-custom-blue"></div>
+                            </label>
+                        </div>
+                        <div id="backup-status-indicator" class="text-xs text-gray-500 mt-2 ml-8">
+                            <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                            Backup automático desativado
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Abas -->
                 <div class="flex border-b border-gray-200 mb-6">
                     <button id="tab-tutorial" onclick="switchTab('tutorial')" class="px-4 py-2 text-sm font-medium text-custom-blue border-b-2 border-custom-blue">
@@ -761,33 +814,14 @@
                             </div>
                         </div>
                         
-                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-semibold text-gray-800">Backup Automático</h4>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="auto-backup-toggle" class="sr-only peer" onchange="toggleAutoBackup()">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-custom-purple peer-checked:to-custom-blue"></div>
-                                </label>
-                            </div>
-                            <p class="text-sm text-gray-600 mb-2">Quando ativado, faz backup automaticamente após cada alteração nos projetos</p>
-                            <div id="backup-status-indicator" class="text-xs text-gray-500">
-                                <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
-                                Backup automático desativado
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-3">
-                            <button onclick="performBackup()" id="backup-btn" class="flex-1 bg-gradient-to-r from-custom-purple to-custom-blue text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                Fazer Backup Agora
-                            </button>
-                            <button onclick="autoSyncProjects()" id="sync-btn" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                Sincronizar Agora
-                            </button>
-                            <button onclick="restoreFromBackup()" id="restore-btn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                Restaurar Específico
-                            </button>
+                        <div class="flex justify-end">
                             <button onclick="loadBackupHistory()" class="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                Atualizar
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Atualizar Histórico
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -3628,5 +3662,5 @@ Os projetos foram atualizados na interface!`);
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97747f0314b609d9',t:'MTc1NjU1OTA4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977498c5846609d9',t:'MTc1NjU2MDE0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
